@@ -1,6 +1,7 @@
 package com.ver_1;
 
 import android.app.Application;
+import androidx.multidex.MultiDexApplication; 
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "107691378677",
+    "firebase_url": "https://ctrans-eec0f.firebaseio.com",
+    "project_id": "ctrans-eec0f",
+    "storage_bucket": "ctrans-eec0f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107691378677:android:a1283acbfe01ec45d902bc",
+        "android_client_info": {
+          "package_name": "com.ver_1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "107691378677-vilgpi5jt05colf8t568rb6cgkdp5muf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPMKXj0pXlTR_TcOyuVOhD0nhJqx7ujVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "107691378677-vilgpi5jt05colf8t568rb6cgkdp5muf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
