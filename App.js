@@ -1,10 +1,10 @@
-import React, {useEffect, useState} from 'react';
-import {View, Text, FlatList} from 'react-native';
+import React from 'react';
+
 import firestore from '@react-native-firebase/firestore';
-import {ActivityIndicator, StyleSheet} from 'react-native';
+
 import {Provider as PaperProvider} from 'react-native-paper';
 
-import PickupOrdersScreen from "./screens/PickupOrdersScreen"
+import MainNavigator from './navigation/MainNavigator';
 const db = firestore();
 
 export default function App1() {
@@ -14,9 +14,7 @@ export default function App1() {
 
   return (
     <PaperProvider>
-      <View>
-       <PickupOrdersScreen/>
-      </View>
+      <MainNavigator/>
     </PaperProvider>
   );
 }

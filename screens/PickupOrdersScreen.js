@@ -5,7 +5,7 @@ import {View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity} f
 import {Card} from 'react-native-paper';
 const db = firestore();
 
-export default function PickupOrdersScreen() {
+export default function PickupOrdersScreen(props) {
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
   const [orders, setOrders] = useState([]); // Initial empty array
   useEffect(() => {
@@ -50,9 +50,7 @@ export default function PickupOrdersScreen() {
                   <TouchableOpacity
                     onPress={() => {
                       props.navigation.navigate('OrderDetails', {
-                        order_inner_id: order.data.order_shipper_inner_id,
-                        order_id: order.id,
-                        order_data: order.data,
+                        order_data: item
                       });
                     }}>
                     <View>
