@@ -19,6 +19,7 @@ import {captureRef} from 'react-native-view-shot';
 import sc_icon from '../assets/overlayIcons/sc.png';
 import c_icon from '../assets/overlayIcons/c.png';
 import p_icon from '../assets/overlayIcons/p.png';
+import InspectionDataScreen from './InspectionDataScreen';
 var RNFS = require('react-native-fs');
 
 const sc_icon_uri = Image.resolveAssetSource(sc_icon).uri;
@@ -82,6 +83,14 @@ export default function DamagesInspectionScreen({route, navigation}) {
 
   const selectedIconHandler = (icon) => {
     setSelectedIcon(icon);
+  };
+
+  const InspectionDataScreenHandler = () => {
+    navigation.navigate('InspectionData', {
+      imageSet: imageSet,
+      order_id: route.params.order_id,
+    });
+
   };
 
 
@@ -226,7 +235,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
                 transform: [{rotate: '90deg'}],
               },
             ]}>
-            {/* <Button title="Done" onPress={testDispatch} /> */}
+            <Button title="Done" onPress={InspectionDataScreenHandler} />
           </View>
         </View>
       </View>
