@@ -1,6 +1,7 @@
 import React from 'react'
 import {createStackNavigator} from '@react-navigation/stack';
 import PickupOrdersScreen from '../screens/PickupOrdersScreen';
+import DeliveryOrdersScreen from '../screens/DeliveryOrdersScreen';
 import OrderDetailsScreen from '../screens/OrderDetailsScreen';
 import PhotoInspectionScreen from "../screens/PhotoInspectionScreen"
 import DamagesInspectionScreen from "../screens/DamagesInspectionScreen"
@@ -8,6 +9,7 @@ import InspectionDataScreen from "../screens/InspectionDataScreen"
 import InspectionSignatureScreen from "../screens/InspectionSignatureScreen"
 
 const PickupOrdersStackNavigator = createStackNavigator();
+const DeliveryOrdersStackNavigator = createStackNavigator();
 const InspectionStackNavigator = createStackNavigator();
 
 
@@ -26,6 +28,21 @@ export const PickupOrdersNavigator = () => {
     );
   };
 
+  export const DeliveryOrdersNavigator = () => {
+    return (
+      <DeliveryOrdersStackNavigator.Navigator>
+        <DeliveryOrdersStackNavigator.Screen
+          name="DeliveryOrders"
+          component={DeliveryOrdersScreen}
+        />
+        <DeliveryOrdersStackNavigator.Screen
+          name="OrderDetails"
+          component={OrderDetailsScreen}
+        />
+      </DeliveryOrdersStackNavigator.Navigator>
+    );
+  };
+  
 
   
 export const InspectionNavigator = () => {

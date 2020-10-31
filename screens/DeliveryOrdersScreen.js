@@ -4,11 +4,11 @@ import {useSelector, useDispatch} from 'react-redux';
 import {View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
 
 import {Card} from 'react-native-paper';
-import {loadPickupOrders} from '../store/actions/orders';
+import {loadDeliveryOrders} from '../store/actions/orders';
 const db = firestore();
 
-export default function PickupOrdersScreen(props) {
-  const pickupOrders = useSelector((state) => state.order.pickupOrders);
+export default function DeliveryOrdersScreen(props) {
+  const deliveryOrders = useSelector((state) => state.order.deliveryOrders);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
   const [orders, setOrders] = useState([]); // Initial empty array
@@ -23,14 +23,14 @@ export default function PickupOrdersScreen(props) {
         const orders = [];
         querySnapshot.forEach((documentSnapshot) => {
           rawData=documentSnapshot.data()
-          if (rawData.order_status === "New"|| rawData.order_status === "Assigned"){
+          if (rawData.order_status === "Picked"){
             orders.push({
               ...rawData,
               key: documentSnapshot.id,
             });
           }
         });
-        dispatch(loadPickupOrders(orders))
+        dispatch(loadDeliveryOrders(orders))
       });
 
     // Unsubscribe from events when no longer in use
@@ -38,9 +38,9 @@ export default function PickupOrdersScreen(props) {
   }, []);
 
   useEffect(()=>{
-    setOrders(pickupOrders)
+    setOrders(deliveryOrders)
     setLoading(false);
-  },[pickupOrders])
+  },[deliveryOrders])
 
   if (loading) {
     return (

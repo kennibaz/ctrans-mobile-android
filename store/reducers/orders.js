@@ -1,4 +1,5 @@
-import {LOAD_ORDERS} from '../actions/orders';
+import {LOAD_PICKUP_ORDERS} from '../actions/orders';
+import {LOAD_DELIVERY_ORDERS} from '../actions/orders';
 import {UPDATE_IMAGES} from '../actions/orders';
 import {UPDATE_SIGNATURE} from '../actions/orders';
 
@@ -13,8 +14,10 @@ const orderReducer = (state = initialState, action) => {
   let foundOrder
 
   switch (action.type) {
-    case LOAD_ORDERS:
+    case LOAD_PICKUP_ORDERS:
       return {...state, pickupOrders: action.orderData};
+      case LOAD_DELIVERY_ORDERS:
+        return {...state, deliveryOrders: action.orderData};
     case UPDATE_IMAGES:
       currentPickupOrders = state.pickupOrders;
       indexOfOrder = currentPickupOrders.findIndex(

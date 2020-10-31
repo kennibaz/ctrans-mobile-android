@@ -1,11 +1,20 @@
-export const LOAD_ORDERS = 'LOAD_ORDERS'
+export const LOAD_PICKUP_ORDERS = 'LOAD_PICKUP_ORDERS'
+export const LOAD_DELIVERY_ORDERS = 'LOAD_DELIVERY_ORDERS'
 export const UPDATE_IMAGES= 'UPDATE_IMAGES'
 export const UPDATE_SIGNATURE = "UPDATE_SIGNATURE"
 
-export const loadOrders = (data) => {
+export const loadPickupOrders = (data) => {
  
-    return {type: LOAD_ORDERS, orderData: data }
+    return {type: LOAD_PICKUP_ORDERS, orderData: data }
 }
+
+
+export const loadDeliveryOrders = (data) => {
+ 
+    return {type: LOAD_DELIVERY_ORDERS, orderData: data }
+}
+
+
 
 export const updateImages = (order_id, imageSet, odometer, notes) => {
  
