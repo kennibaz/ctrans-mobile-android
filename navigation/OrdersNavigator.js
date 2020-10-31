@@ -5,6 +5,7 @@ import OrderDetailsScreen from '../screens/OrderDetailsScreen';
 import PhotoInspectionScreen from "../screens/PhotoInspectionScreen"
 import DamagesInspectionScreen from "../screens/DamagesInspectionScreen"
 import InspectionDataScreen from "../screens/InspectionDataScreen"
+import InspectionSignatureScreen from "../screens/InspectionSignatureScreen"
 
 const PickupOrdersStackNavigator = createStackNavigator();
 const InspectionStackNavigator = createStackNavigator();
@@ -51,13 +52,13 @@ export const InspectionNavigator = () => {
           headerShown: true,
         }}
       />
-        {/* <InspectionStackNavigator.Screen
-        name="SignaturePad"
-        component={SignaturePad}
+        <InspectionStackNavigator.Screen
+        name="InspectionSignature"
+        component={InspectionSignatureScreen}
         options={{
           headerShown: true,
         }}
-      /> */}
+      />
         {/* <InspectionStackNavigator.Screen
         name="MergedImageTest"
         component={ShowMergedImageTest}

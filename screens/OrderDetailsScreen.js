@@ -4,11 +4,11 @@ import { Card, Button } from "react-native-paper";
 import {useSelector, useDispatch} from 'react-redux';
 
 export default function OrderDetailsScreen({route, navigation}) {
-  const pickupOrders = useSelector((state) => state.order.pickupOrders);
+
     const [order, setOrder] = useState('')
     useEffect(()=>{
         setOrder(route.params.order_data)
-        console.log(pickupOrders)
+
       },[route.params])
 
       if (!order) {
@@ -156,9 +156,9 @@ export default function OrderDetailsScreen({route, navigation}) {
                 mode="contained"
                 onPress={()=>{
                   navigation.navigate('Inspection', {
-                    screen: "SignaturePad",
+                    screen: "InspectionSignature",
                     params: {
-                      order_id: order.id
+                      order_id: route.params.order_id
                     }
                   })
                 }}

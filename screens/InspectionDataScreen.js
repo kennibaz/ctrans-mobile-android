@@ -21,7 +21,6 @@ export default function InspectionDataScreen({navigation, route}) {
       ),
     );
 
-    console.log("done")
     navigation.navigate('OrderDetails', {
       order_id: route.params.order_id,
     });

@@ -14,6 +14,8 @@ target 'ver_1' do
 
   pod 'RNFS', :path => '../node_modules/react-native-fs'
 
+  pod 'react-native-webview', :path => '../node_modules/react-native-webview'
+
   target 'ver_1Tests' do
     inherit! :complete
     # Pods for testing
