@@ -47,7 +47,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
 
   const setCoordinates = (ev, index) => {
     let selected_icon = sc_icon_uri;
-    let currentMergedImage;
 
     if (selectedIcon === 'c') {
       selected_icon = c_icon_uri;
@@ -94,7 +93,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
   }
 
   return (
-    <View style={styles.box}>
+    <View style={styles.screen}>
       <View style={styles.lowerPanel}>
         <View
           style={{
@@ -172,10 +171,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
                     height: '100%',
                   }}
                   onPress={(ev) => {
-                    console.log(
-                      ev.nativeEvent.locationX,
-                      ev.nativeEvent.locationY,
-                    );
                     setCoordinates(ev, indexBackImage);
                   }}>
                   <ImageBackground
@@ -262,49 +257,13 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
     },
   
-    box: {
+    screen: {
       flexDirection: 'column',
       height: '100%',
       width: '100%',
     },
-    box2: {
-      top: 300,
-      left: -190,
-    },
+
   
-    container: {
-      flex: 1,
-      flexDirection: 'column',
-      backgroundColor: 'black',
-    },
-    preview: {
-      flex: 1,
-      justifyContent: 'flex-end',
-      alignItems: 'stretch',
-    },
-    capture: {
-      flex: 0,
-      backgroundColor: '#fff',
-      borderRadius: 5,
-      padding: 0,
-      paddingHorizontal: 0,
-      alignSelf: 'center',
-      margin: 0,
-    },
-    imageBack: {
-      flex: 1,
-      width: '100%',
-      height: '100%',
-      margin: 2,
-      position: 'relative',
-    },
-    image: {
-      width: '10%',
-      height: '10%',
-      margin: 2,
-      position: 'absolute',
-      // top: yPos,
-      // left: xPos,
-    },
+  
   });
   
