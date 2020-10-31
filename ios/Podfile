@@ -12,6 +12,8 @@ target 'ver_1' do
 
   pod 'react-native-camera', :path => '../node_modules/react-native-camera'
 
+  pod 'RNFS', :path => '../node_modules/react-native-fs'
+
   target 'ver_1Tests' do
     inherit! :complete
     # Pods for testing

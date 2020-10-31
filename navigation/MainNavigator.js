@@ -4,6 +4,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import {PickupOrdersNavigator} from './OrdersNavigator';
+import {InspectionNavigator} from './OrdersNavigator';
 
 const Tab = createBottomTabNavigator();
 const ordersNav = createStackNavigator();
@@ -22,6 +23,13 @@ function OrderTabs() {
       <NavigationContainer>
         <ordersNav.Navigator>
           <ordersNav.Screen name="Tabs" component={OrderTabs} />
+          <ordersNav.Screen
+          name="Inspection"
+          component={InspectionNavigator}
+          options={{
+            headerShown: false,
+          }}
+        />
         </ordersNav.Navigator>
       </NavigationContainer>
     );

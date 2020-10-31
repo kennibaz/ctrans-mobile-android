@@ -54,7 +54,7 @@ export default function OrderDetailsScreen({route, navigation}) {
                 mode="contained"
                 onPress={()=>{
                   navigation.navigate('Inspection', {
-                    screen: "InspectionImage",
+                    screen: "PhotoInspection",
                     params: {
                       order_id: order.id
                     }

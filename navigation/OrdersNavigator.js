@@ -2,8 +2,10 @@ import React from 'react'
 import {createStackNavigator} from '@react-navigation/stack';
 import PickupOrdersScreen from '../screens/PickupOrdersScreen';
 import OrderDetailsScreen from '../screens/OrderDetailsScreen';
+import PhotoInspectionScreen from "../screens/PhotoInspectionScreen"
 
 const PickupOrdersStackNavigator = createStackNavigator();
+const InspectionStackNavigator = createStackNavigator();
 
 
 export const PickupOrdersNavigator = () => {
@@ -20,3 +22,47 @@ export const PickupOrdersNavigator = () => {
       </PickupOrdersStackNavigator.Navigator>
     );
   };
+
+
+  
+export const InspectionNavigator = () => {
+  return (
+    <InspectionStackNavigator.Navigator>
+      <InspectionStackNavigator.Screen
+        name="PhotoInspection"
+        component={PhotoInspectionScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+       {/* <InspectionStackNavigator.Screen
+        name="EditImage"
+        component={EditImageScreen}
+        options={{
+          headerShown: false,
+        }}
+      /> */}
+       {/* <InspectionStackNavigator.Screen
+        name="FinishInspection"
+        component={FinishInspectionScreen}
+        options={{
+          headerShown: true,
+        }}
+      />
+        <InspectionStackNavigator.Screen
+        name="SignaturePad"
+        component={SignaturePad}
+        options={{
+          headerShown: true,
+        }}
+      /> */}
+        {/* <InspectionStackNavigator.Screen
+        name="MergedImageTest"
+        component={ShowMergedImageTest}
+        options={{
+          headerShown: true,
+        }}
+      /> */}
+    </InspectionStackNavigator.Navigator>
+  );
+};
