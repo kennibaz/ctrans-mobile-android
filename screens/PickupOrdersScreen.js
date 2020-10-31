@@ -1,13 +1,19 @@
 import React, {useState, useEffect} from 'react';
 import firestore from '@react-native-firebase/firestore';
+import {useSelector, useDispatch} from 'react-redux';
 import {View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
 
 import {Card} from 'react-native-paper';
+import {loadOrders} from '../store/actions/orders';
 const db = firestore();
 
 export default function PickupOrdersScreen(props) {
+  const pickupOrders = useSelector((state) => state.order.pickupOrders);
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
   const [orders, setOrders] = useState([]); // Initial empty array
+  const [testOrders, setTestOrders] = useState([]); // Initial empty array
+
   useEffect(() => {
     const subscriber = firestore()
       .collection('carriers-records')
@@ -21,14 +27,17 @@ export default function PickupOrdersScreen(props) {
             key: documentSnapshot.id,
           });
         });
-
-        setOrders(orders);
-        setLoading(false);
+        dispatch(loadOrders(orders))
       });
 
     // Unsubscribe from events when no longer in use
     return () => subscriber();
   }, []);
+
+  useEffect(()=>{
+    setOrders(pickupOrders)
+    setLoading(false);
+  },[pickupOrders])
 
   if (loading) {
     return (
@@ -50,7 +59,8 @@ export default function PickupOrdersScreen(props) {
                   <TouchableOpacity
                     onPress={() => {
                       props.navigation.navigate('OrderDetails', {
-                        order_data: item
+                        order_data: item,
+                        order_id: item.key
                       });
                     }}>
                     <View>

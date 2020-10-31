@@ -1,11 +1,14 @@
 import React, {useEffect, useState} from "react";
 import { View, Text, StyleSheet, ScrollView, Image } from "react-native";
 import { Card, Button } from "react-native-paper";
+import {useSelector, useDispatch} from 'react-redux';
 
 export default function OrderDetailsScreen({route, navigation}) {
+  const pickupOrders = useSelector((state) => state.order.pickupOrders);
     const [order, setOrder] = useState('')
     useEffect(()=>{
         setOrder(route.params.order_data)
+        console.log(pickupOrders)
       },[route.params])
 
       if (!order) {
@@ -40,13 +43,6 @@ export default function OrderDetailsScreen({route, navigation}) {
                   {order.vehiclesArray[0].model}
                 </Text>
               </View>
-              {/* <View style={{height: 100, width: 100}}>
-                {order.imageSet && <Image style={{
-                    width: '100%',
-                    height: '100%',
-                  }} source={{uri: order.imageSet[0].backGroundImageUri}}/>}
-                
-              </View> */}
             </Card.Content>
             <Card.Actions>
               <Button
@@ -56,7 +52,7 @@ export default function OrderDetailsScreen({route, navigation}) {
                   navigation.navigate('Inspection', {
                     screen: "PhotoInspection",
                     params: {
-                      order_id: order.id
+                      order_id: route.params.order_id
                     }
                   })
                 }}
