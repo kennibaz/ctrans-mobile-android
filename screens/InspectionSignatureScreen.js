@@ -4,6 +4,8 @@ import uuid from 'react-uuid';
 import firestore from '@react-native-firebase/firestore';
 import SignatureScreen from 'react-native-signature-canvas';
 import {TextInput} from 'react-native-paper';
+import {utils} from '@react-native-firebase/app';
+import storage from '@react-native-firebase/storage';
 import {updateSignature} from '../store/actions/orders';
 var RNFS = require('react-native-fs');
 import {
@@ -24,17 +26,36 @@ export default function InspectionSignatureScreen({route, navigation}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [signatureUri, setSignatureUri] = useState('');
-  const [readyToSave, setReadyToSave] = useState(false)
+  const [readyToSave, setReadyToSave] = useState(false);
 
+  const onPickupHandler = async () => {
+    // db.collection('carriers-records')
+    //   .doc('c87U6WtSNRybGF0WrAXb')
+    //   .collection('orders')
+    //   .doc(route.params.order_id)
+    //   .update({
+    //     order_status: 'Picked',
+    //   });
 
-  const onPickupHandler = async ()=>{
-    db.
-    collection('carriers-records')
-    .doc('c87U6WtSNRybGF0WrAXb')
-    .collection('orders').doc(route.params.order_id).update({
-        order_status: "Picked"
-    })
-  }
+    const foundOrder = pickupOrders.filter((order) => {
+      return order.key === route.params.order_id;
+    });
+
+    const imagesArray = foundOrder[0].imageSet;
+    console.log(imagesArray);
+
+    imagesArray.forEach(async (image) => {
+      const newId = uuid();
+      const reference = storage().ref(`inspection-photo-${newId}.jpg`);
+      const pathToFile = image.mergedImage;
+      await reference.putFile(pathToFile);
+
+      // setUploadedImages((currentImages) => [...currentImages, linkToUpload]);
+    });
+
+    // uploads file
+    
+  };
 
   const handleSignature = async (signature) => {
     const newId = uuid();
@@ -50,10 +71,8 @@ export default function InspectionSignatureScreen({route, navigation}) {
 
     setSignatureUri('file://' + path);
     // dispatch(updateSignature(route.params.order_id, signatureUri, name, email));
-    setReadyToSave(true)
+    setReadyToSave(true);
   };
-
-  
 
   const handleEmpty = () => {
     console.log('Empty');
