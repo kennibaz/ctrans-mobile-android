@@ -13,7 +13,7 @@ import {RNCamera} from 'react-native-camera';
 import uuid from 'react-uuid';
 let RNFS = require('react-native-fs');
 
-export default function PhotoInspectionScreen() {
+export default function PhotoInspectionScreen({route, navigation}) {
   const [pickedImageUri, setPickedImageUri] = useState([]);
   const [damagesScreenButtonEnabled, setDamagesScreenButtonEnabled] = useState(false);
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function PhotoInspectionScreen() {
               title="Damages"
               disabled={!damagesScreenButtonEnabled}
               onPress={() => {
-                navigation.navigate('EditImage', {
+                navigation.navigate('DamageInspection', {
                   pickedImageUri: pickedImageUri,
                   order_id: route.params.order_id,
                 });
@@ -110,7 +110,7 @@ export default function PhotoInspectionScreen() {
               <TouchableOpacity
                 key={image}
                 onPress={() => {
-                  navigation.navigate('EditImage', {
+                  navigation.navigate('DamageInspection', {
                     uri: image,
                     pickedImageUri: pickedImageUri,
                     order_id: route.params.order_id,

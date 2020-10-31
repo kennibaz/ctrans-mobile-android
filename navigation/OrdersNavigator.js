@@ -3,6 +3,7 @@ import {createStackNavigator} from '@react-navigation/stack';
 import PickupOrdersScreen from '../screens/PickupOrdersScreen';
 import OrderDetailsScreen from '../screens/OrderDetailsScreen';
 import PhotoInspectionScreen from "../screens/PhotoInspectionScreen"
+import DamagesInspectionScreen from "../screens/DamagesInspectionScreen"
 
 const PickupOrdersStackNavigator = createStackNavigator();
 const InspectionStackNavigator = createStackNavigator();
@@ -35,13 +36,13 @@ export const InspectionNavigator = () => {
           headerShown: false,
         }}
       />
-       {/* <InspectionStackNavigator.Screen
-        name="EditImage"
-        component={EditImageScreen}
+       <InspectionStackNavigator.Screen
+        name="DamageInspection"
+        component={DamagesInspectionScreen}
         options={{
           headerShown: false,
         }}
-      /> */}
+      />
        {/* <InspectionStackNavigator.Screen
         name="FinishInspection"
         component={FinishInspectionScreen}
