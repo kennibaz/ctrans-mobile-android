@@ -48,20 +48,23 @@ export default function InspectionSignatureScreen({route, navigation}) {
 
     //save a pic of a signature
     const newSignUuid = uuid();
-    const reference = storage().ref(`signature-${newSignUuid}.jpg`);
+    const reference = storage().ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`);
     const pathToFile = signatureUri;
     await reference.putFile(pathToFile);
     setSignatureUploadedUri(
-      await storage().ref(`signature-${newSignUuid}.jpg`).getDownloadURL(),
+      await storage().ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`).getDownloadURL(),
     );
 
     imagesArray.forEach(async (image) => {
       const newId = uuid();
-      const reference = storage().ref(`inspection-photo-${newId}.jpg`);
+      // let storageRef = firebase.storage().ref();
+
+      const reference = storage().ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`);
+      // const reference = storageRef.child(`images/inspection-photo-${newId}.jpg`)
       const pathToFile = image.mergedImage;
       await reference.putFile(pathToFile);
       const url = await storage()
-        .ref(`inspection-photo-${newId}.jpg`)
+        .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
         .getDownloadURL();
       setUploadedImages((currentImages) => [...currentImages, url]);
     });
