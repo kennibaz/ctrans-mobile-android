@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import {TextInput} from 'react-native-paper';
-import {View, Button} from 'react-native';
+import {View, Button } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import uuid from 'react-uuid';
 
 import { useDispatch} from 'react-redux';
 import {updateImages} from '../store/actions/orders';
@@ -10,6 +12,8 @@ export default function InspectionDataScreen({navigation, route}) {
   const [odometer, setOdometer] = useState('');
   const [notes, setNotes] = useState('');
 
+ 
+ 
   const saveButtonHandler = async () => {
    
     dispatch(
@@ -40,6 +44,8 @@ export default function InspectionDataScreen({navigation, route}) {
         onChangeText={(notes) => setNotes(notes)}
       />
       <Button title="Save" onPress={saveButtonHandler} />
+
+
     </View>
   );
 }
