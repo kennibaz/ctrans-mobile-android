@@ -15,7 +15,7 @@ import {
   ImageBackground,
 } from 'react-native';
 import ViewShot from 'react-native-view-shot';
-import {captureRef} from 'react-native-view-shot';
+
 import sc_icon from '../assets/overlayIcons/sc.png';
 import c_icon from '../assets/overlayIcons/c.png';
 import p_icon from '../assets/overlayIcons/p.png';
@@ -31,6 +31,8 @@ export default function DamagesInspectionScreen({route, navigation}) {
   const [imageSet, setImageSet] = useState([]);
   const [overlay, setOverlay] = useState([]);
   const [selectedIcon, setSelectedIcon] = useState('sc');
+  const [currentIndex, setCurrentIndex] = useState('');
+  const [readyForShot, setReadyForShot] = useState('');
 
   useEffect(() => {
     StatusBar.setHidden(true);
@@ -65,15 +67,32 @@ export default function DamagesInspectionScreen({route, navigation}) {
 
     currentArray = imageSet;
     currentArray[index].overlay.push(newImageCoordinates);
-    captureRef(viewShotRef, {
-      format: 'jpg',
-      quality: 0.8,
-    }).then((mergedImageRaw) => {
-      currentArray[index].mergedImage = mergedImageRaw;
-    });
+
+    setCurrentIndex(index);
+    setReadyForShot(!readyForShot);
     setImageSet(currentArray);
+
     setOverlay((currentOverlay) => [...currentOverlay, newImageCoordinates]);
   };
+
+  useEffect(() => {
+    const result = async () => {
+      let currentArray = imageSet;
+      let index = currentIndex;
+      const newId = uuid();
+      let path = RNFS.DocumentDirectoryPath + newId + '.jpg';
+      const options = {quality: 0.5, base64: true};
+      const dataUri = await viewShotRef.current.capture();
+      const dataFile = await RNFS.readFile(dataUri, 'base64');
+      
+      await RNFS.writeFile(path, dataFile, 'base64');
+      const correctedPath = 'file://' + path;
+      currentArray[index].mergedImage = correctedPath;
+    };
+    result();
+  }, [readyForShot]);
+
+
 
   const deleteMarkHandler = (index, indexBackImage) => {
     const updatedOverlay = [...imageSet];
@@ -90,9 +109,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
       imageSet: imageSet,
       order_id: route.params.order_id,
     });
-
   };
-
 
   if (!imageSet) {
     return;
@@ -243,36 +260,31 @@ export default function DamagesInspectionScreen({route, navigation}) {
   );
 }
 
-
 const styles = StyleSheet.create({
-    upperPanel: {
-      height: '15%',
-      width: '100%',
-      backgroundColor: 'black',
-      justifyContent: 'center',
-    },
-    middlePanel: {
-      flex: 1,
-      height: '70%',
-      width: '100%',
-      backgroundColor: 'black',
-      justifyContent: 'center',
-      flexDirection: 'row',
-    },
-    lowerPanel: {
-      height: '15%',
-      width: '100%',
-      backgroundColor: 'black',
-      justifyContent: 'center',
-    },
-  
-    screen: {
-      flexDirection: 'column',
-      height: '100%',
-      width: '100%',
-    },
+  upperPanel: {
+    height: '15%',
+    width: '100%',
+    backgroundColor: 'black',
+    justifyContent: 'center',
+  },
+  middlePanel: {
+    flex: 1,
+    height: '70%',
+    width: '100%',
+    backgroundColor: 'black',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  lowerPanel: {
+    height: '15%',
+    width: '100%',
+    backgroundColor: 'black',
+    justifyContent: 'center',
+  },
 
-  
-  
-  });
-  
+  screen: {
+    flexDirection: 'column',
+    height: '100%',
+    width: '100%',
+  },
+});

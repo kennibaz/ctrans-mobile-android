@@ -18,7 +18,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
   const [damagesScreenButtonEnabled, setDamagesScreenButtonEnabled] = useState(false);
   useEffect(() => {
     StatusBar.setHidden(true);
-  });
+  }); 
 
   const takePicture = async () => {
     if (this.camera) {
