@@ -5,34 +5,29 @@ import uuid from 'react-uuid';
 import firestore from '@react-native-firebase/firestore';
 const db = firestore();
 
-
-
 export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
   console.log('running in BG');
+  let uploadDone = false;
   try {
     const value = await AsyncStorage.getItem('TASKS');
     if (value !== null) {
+      const created_at = new Date();
+      const new_activity = {
+        activity_date: created_at,
+        activity_type: 'Order was picked up',
+        activity_user: 'driver',
+        activity_log: `Order was picked up at ${created_at}`,
+      };
       let data = JSON.parse(value);
-      let uploadedImagesUri = []
+      let uploadedImagesUri = [];
+      
+      
       const newSignUuid = uuid();
       const reference = storage().ref(
         `/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`,
       );
       const signatureUri = data[0].taskBody.signatureUri;
       const imagesArray = data[0].taskBody.imagesArray;
-
-      db.collection('carriers-records')
-      .doc('c87U6WtSNRybGF0WrAXb')
-      .collection('orders')
-      .doc(data[0].taskBody.doc_id).update({
-        order_status: 'Picked',
-        'pickup.pickup_conditions.name_on_pickup_signature': data[0].taskBody.name_on_pickup_signature,
-        'pickup.pickup_conditions.email_on_pickup_signature': data[0].taskBody.email_on_pickup_signature,
-        'pickup.pickup_conditions.odometer': data[0].taskBody.odometer,
-        'pickup.pickup_conditions.driver_pickup_notes': data[0].taskBody.pickupNotes,
-      })
-      console.log("Data uploaded")
-
 
       imagesArray.forEach(async (image) => {
         const newId = uuid();
@@ -45,27 +40,44 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
           .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
           .getDownloadURL();
         // setUploadedImages((currentImages) => [...currentImages, url]);
-        uploadedImagesUri.push(url)
+        uploadedImagesUri.push(url);
       });
+
+    
 
       await reference.putFile(signatureUri);
       const signatureResultUri = await storage()
         .ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`)
         .getDownloadURL();
 
-      if (uploadedImagesUri.length === imagesArray.length && signatureResultUri) {
+      // if (
+      //   // uploadedImagesUri.length === imagesArray.length &&
+      //   signatureResultUri
+      // ) {
         db.collection('carriers-records')
           .doc('c87U6WtSNRybGF0WrAXb')
           .collection('orders')
           .doc(data[0].taskBody.doc_id)
           .update({
+            order_status: 'Picked',
+            'pickup.pickup_conditions.name_on_pickup_signature':
+              data[0].taskBody.name_on_pickup_signature,
+            'pickup.pickup_conditions.email_on_pickup_signature':
+              data[0].taskBody.email_on_pickup_signature,
+            'pickup.pickup_conditions.odometer': data[0].taskBody.odometer,
+            'pickup.pickup_conditions.driver_pickup_notes':
+              data[0].taskBody.pickupNotes,
             'pickup.pickup_conditions.pickup_inspection_images_links': uploadedImagesUri,
             'pickup.pickup_conditions.signature_image_link': signatureResultUri,
+            order_activity: firestore.FieldValue.arrayUnion(new_activity),
+            loadingInProgress: false,
           });
-          console.log("photo uploaded")
-          data.shift();
-      }
+        uploadDone = true;
+      // }
 
+      if (uploadDone) {
+        data.shift();
+      }
 
       try {
         await AsyncStorage.setItem('TASKS', JSON.stringify(data));
@@ -78,4 +90,4 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
   } catch (e) {
     // error reading value
   }
-}, 30000);
+}, 15000);

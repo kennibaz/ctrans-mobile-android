@@ -70,6 +70,13 @@ export default function InspectionSignatureScreen({route, navigation}) {
     } catch (e) {
       console.log('something went wrong')
     }
+
+    db.collection('carriers-records')
+          .doc('c87U6WtSNRybGF0WrAXb')
+          .collection('orders')
+          .doc(route.params.order_id).update({
+            loadingInProgress: true
+          })
     setUploadDone(true)
     
   };

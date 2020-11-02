@@ -29,6 +29,7 @@ const orderReducer = (state = initialState, action) => {
       foundOrder[0].imageSet = action.imageSet;
       foundOrder[0].odometer = action.odometer;
       foundOrder[0].driver_pickup_notes = action.driver_pickup_notes;
+      foundOrder[0].is_edit_mode = true
       currentPickupOrders.splice(indexOfOrder, 1, foundOrder[0]);
       return {...state, pickupOrders: currentPickupOrders};
     case UPDATE_SIGNATURE:

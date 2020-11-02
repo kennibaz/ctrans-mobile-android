@@ -71,6 +71,7 @@ export default function PickupOrdersScreen(props) {
                         <Text style={{fontWeight: '700'}}>
                           {item.order_shipper_inner_id}
                         </Text>
+                        <Text>{item.loadingInProgress ? 'upload in progress' : ''}</Text>
                         <Text>
                           $ {item.order_payment.order_total_amount}
                         </Text>

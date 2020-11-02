@@ -1,4 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
 import uuid from 'react-uuid';
 import {
   View,
@@ -27,25 +28,38 @@ const c_icon_uri = Image.resolveAssetSource(c_icon).uri;
 const p_icon_uri = Image.resolveAssetSource(p_icon).uri;
 
 export default function DamagesInspectionScreen({route, navigation}) {
+  const pickupOrders = useSelector((state) => state.order.pickupOrders);
+  let currentDate = new Date(); //use your date here
+  let newDate = currentDate.toLocaleDateString('en-US'); // "en-US" gives date in US Format - mm/dd/yy
   const viewShotRef = useRef(null);
   const [imageSet, setImageSet] = useState([]);
   const [overlay, setOverlay] = useState([]);
   const [selectedIcon, setSelectedIcon] = useState('sc');
   const [currentIndex, setCurrentIndex] = useState('');
   const [readyForShot, setReadyForShot] = useState('');
+  const [foundOrder, setFoundOrder] = useState('');
 
   useEffect(() => {
     StatusBar.setHidden(true);
   }, []);
   useEffect(() => {
-    let imageRawArray = route.params.pickedImageUri;
-    imageRawArray.forEach((image) => {
-      const imageSet = {
-        backGroundImageUri: image,
-        overlay: [],
-      };
-      setImageSet((currentState) => [...currentState, imageSet]);
-    });
+    if (route.params.is_edit_mode) {
+      const foundOrder = pickupOrders.filter((order) => {
+        return order.key === route.params.order_id;
+      });
+      console.log(foundOrder);
+      setImageSet(foundOrder[0].imageSet);
+      setFoundOrder(foundOrder);
+    } else {
+      let imageRawArray = route.params.pickedImageUri;
+      imageRawArray.forEach((image) => {
+        const imageSet = {
+          backGroundImageUri: image,
+          overlay: [],
+        };
+        setImageSet((currentState) => [...currentState, imageSet]);
+      });
+    }
   }, []);
 
   const setCoordinates = (ev, index) => {
@@ -84,15 +98,13 @@ export default function DamagesInspectionScreen({route, navigation}) {
       const options = {quality: 0.5, base64: true};
       const dataUri = await viewShotRef.current.capture();
       const dataFile = await RNFS.readFile(dataUri, 'base64');
-      
+
       await RNFS.writeFile(path, dataFile, 'base64');
       const correctedPath = 'file://' + path;
       currentArray[index].mergedImage = correctedPath;
     };
     result();
   }, [readyForShot]);
-
-
 
   const deleteMarkHandler = (index, indexBackImage) => {
     const updatedOverlay = [...imageSet];
@@ -108,14 +120,17 @@ export default function DamagesInspectionScreen({route, navigation}) {
     navigation.navigate('InspectionData', {
       imageSet: imageSet,
       order_id: route.params.order_id,
+      odometer: foundOrder ? foundOrder[0].odometer : '',
+      driver_pickup_notes: foundOrder ? foundOrder[0].driver_pickup_notes : '',
     });
   };
 
   if (!imageSet) {
-    return;
-    <View>
-      <Text>Loading</Text>
-    </View>;
+    return (
+      <View>
+        <Text>Loading</Text>
+      </View>
+    );
   }
 
   return (
@@ -221,6 +236,18 @@ export default function DamagesInspectionScreen({route, navigation}) {
                         />
                       </TouchableWithoutFeedback>
                     ))}
+
+                    <View
+                      style={[
+                        styles.transparentBox,
+                        {
+                          transform: [{rotate: '90deg'}],
+                        },
+                      ]}>
+                      <Text style={styles.transparentText}>
+                        Pickup conditions {newDate} on @ Pinellas Park, FL 33781
+                      </Text>
+                    </View>
                   </ImageBackground>
                 </TouchableWithoutFeedback>
               </View>
@@ -286,5 +313,15 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     height: '100%',
     width: '100%',
+  },
+  transparentBox: {
+    left: -190,
+    top: 225,
+    width: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  transparentText: {
+    fontSize: 15,
+    color: 'white',
   },
 });
