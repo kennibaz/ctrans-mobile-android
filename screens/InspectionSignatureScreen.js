@@ -4,19 +4,14 @@ import uuid from 'react-uuid';
 import firestore from '@react-native-firebase/firestore';
 import SignatureScreen from 'react-native-signature-canvas';
 import {TextInput} from 'react-native-paper';
-import {utils} from '@react-native-firebase/app';
+
 import storage from '@react-native-firebase/storage';
 import {updateSignature} from '../store/actions/orders';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 var RNFS = require('react-native-fs');
 import {
   View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   Button,
-  Image,
 } from 'react-native';
 const db = firestore();
 
@@ -24,16 +19,39 @@ export default function InspectionSignatureScreen({route, navigation}) {
   const ref = useRef();
   const dispatch = useDispatch();
   const pickupOrders = useSelector((state) => state.order.pickupOrders);
+  const [localPickupOrders, setLocalPickupOrders] = useState('')
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [signatureUri, setSignatureUri] = useState('');
   const [readyToSave, setReadyToSave] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
 
+
+  useEffect(()=>{
+    const result = async ()=>{
+      
+      try {
+        let fetchFromAsyncStorage = await AsyncStorage.getItem(
+          'pickupOrdersLocalStorage',
+        );
+        if (fetchFromAsyncStorage !== null) {
+          setLocalPickupOrders(JSON.parse(fetchFromAsyncStorage)) 
+          console.log(JSON.parse(fetchFromAsyncStorage))
+        }
+      } catch (e) {
+        console.log('something went wrong',e);
+      }
+    }
+    result()
+  },[])
+
   const onPickupHandler = async () => {
-    const foundOrder = pickupOrders.filter((order) => {
+    const foundOrder = localPickupOrders.filter((order) => {
       return order.key === route.params.order_id;
     });
+    const foundOrderIndex = localPickupOrders.findIndex((order)=>{
+      return order.key === route.params.order_id
+    })
     const imagesArray = foundOrder[0].imageSet;
     // add a task to background
     let taskId = uuid()
@@ -77,6 +95,16 @@ export default function InspectionSignatureScreen({route, navigation}) {
           .doc(route.params.order_id).update({
             loadingInProgress: true
           })
+
+    localPickupOrders.splice(foundOrderIndex,1)
+    try {
+      await AsyncStorage.setItem(
+        'pickupOrdersLocalStorage',
+        JSON.stringify(localPickupOrders),
+      );
+    } catch (e) {
+      console.log('something went wrong');
+    }
     setUploadDone(true)
     
   };

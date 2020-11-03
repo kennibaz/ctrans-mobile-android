@@ -20,8 +20,7 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
       };
       let data = JSON.parse(value);
       let uploadedImagesUri = [];
-      
-      
+
       const newSignUuid = uuid();
       const reference = storage().ref(
         `/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`,
@@ -43,17 +42,12 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
         uploadedImagesUri.push(url);
       });
 
-    
-
       await reference.putFile(signatureUri);
       const signatureResultUri = await storage()
         .ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`)
         .getDownloadURL();
 
-      // if (
-      //   // uploadedImagesUri.length === imagesArray.length &&
-      //   signatureResultUri
-      // ) {
+      if (uploadedImagesUri.length === imagesArray.length) {
         db.collection('carriers-records')
           .doc('c87U6WtSNRybGF0WrAXb')
           .collection('orders')
@@ -73,21 +67,20 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
             loadingInProgress: false,
           });
         uploadDone = true;
-      // }
+      }
 
       if (uploadDone) {
         data.shift();
-      }
-
-      try {
-        await AsyncStorage.setItem('TASKS', JSON.stringify(data));
-      } catch (e) {
-        // saving error
+        try {
+          await AsyncStorage.setItem('TASKS', JSON.stringify(data));
+        } catch (e) {
+          console.log(e)
+        }
       }
     } else {
       console.log('Nothing is scheduled');
     }
   } catch (e) {
-    // error reading value
+    console.log(e)
   }
 }, 15000);

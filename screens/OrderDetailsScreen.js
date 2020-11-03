@@ -1,16 +1,68 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, ScrollView, Image} from 'react-native';
+import {View, Text, StyleSheet, ScrollView} from 'react-native';
 import {Card, Button} from 'react-native-paper';
-import {useSelector, useDispatch} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function OrderDetailsScreen({route, navigation}) {
   const [order, setOrder] = useState('');
+  const [existedOrder, setExistedOrder] = useState('');
+  const [pickupOrders, setPickupOrders] = useState([]);
+  const [pickupOrdersLocalStorage, setPickupOrdersLocalStorage] = useState([]);
   useEffect(() => {
-    setOrder(route.params.order_data);
-    console.log(route.params.order_data)
+    const result = async () => {
+      try {
+        let fetchFromAsyncStorage = await AsyncStorage.getItem('pickupOrders');
+        setPickupOrders(JSON.parse(fetchFromAsyncStorage));
+      } catch (e) {
+        console.log('something went wrong');
+      }
+    };
+    result();
   }, [route.params]);
 
+  useEffect(() => {
+    const result = async () => {
+      try {
+        let fetchFromAsyncStorage = await AsyncStorage.getItem(
+          'pickupOrdersLocalStorage',
+        );
+        setPickupOrdersLocalStorage(JSON.parse(fetchFromAsyncStorage));
+      } catch (e) {
+        console.log('something went wrong');
+      }
+    };
+    result();
+  }, [route.params]);
+
+  useEffect(() => {
+    if (pickupOrdersLocalStorage && pickupOrdersLocalStorage.length > 0) {
+      let existingOrder = pickupOrdersLocalStorage.filter((order) => {
+        return order.key === route.params.order_id;
+      });
+      setExistedOrder(existingOrder);
+    }
+  }, [pickupOrdersLocalStorage]);
+
+  useEffect(() => {
+    let foundOrder = pickupOrders.filter((order) => {
+      return order.key === route.params.order_id;
+    });
+    setOrder(foundOrder[0]);
+  }, [pickupOrders]);
+
   if (!order) {
+    return (
+      <View>
+        <Text>Loading</Text>
+      </View>
+    );
+  }
+
+  if (
+    pickupOrdersLocalStorage &&
+    pickupOrdersLocalStorage.length > 0 &&
+    !existedOrder
+  ) {
     return (
       <View>
         <Text>Loading</Text>
@@ -49,7 +101,7 @@ export default function OrderDetailsScreen({route, navigation}) {
           </View>
         </Card.Content>
         <Card.Actions>
-          {order.is_edit_mode ? (
+          {existedOrder.length > 0 ? (
             <Button
               icon="camera"
               mode="contained"
@@ -59,6 +111,7 @@ export default function OrderDetailsScreen({route, navigation}) {
                   params: {
                     order_id: route.params.order_id,
                     is_edit_mode: true,
+                    existed_order_data: existedOrder,
                   },
                 });
               }}

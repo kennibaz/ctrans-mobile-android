@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import uuid from 'react-uuid';
 import {
   View,
@@ -28,11 +28,11 @@ const c_icon_uri = Image.resolveAssetSource(c_icon).uri;
 const p_icon_uri = Image.resolveAssetSource(p_icon).uri;
 
 export default function DamagesInspectionScreen({route, navigation}) {
-  const pickupOrders = useSelector((state) => state.order.pickupOrders);
   let currentDate = new Date(); //use your date here
   let newDate = currentDate.toLocaleDateString('en-US'); // "en-US" gives date in US Format - mm/dd/yy
   const viewShotRef = useRef(null);
   const [imageSet, setImageSet] = useState([]);
+  const [pickupOrders, setPickupOrders] = useState([]);
   const [overlay, setOverlay] = useState([]);
   const [selectedIcon, setSelectedIcon] = useState('sc');
   const [currentIndex, setCurrentIndex] = useState('');
@@ -44,12 +44,9 @@ export default function DamagesInspectionScreen({route, navigation}) {
   }, []);
   useEffect(() => {
     if (route.params.is_edit_mode) {
-      const foundOrder = pickupOrders.filter((order) => {
-        return order.key === route.params.order_id;
-      });
-      console.log(foundOrder);
-      setImageSet(foundOrder[0].imageSet);
-      setFoundOrder(foundOrder);
+      setImageSet(route.params.existed_order_data[0].imageSet);
+      setFoundOrder(route.params.existed_order_data[0]);
+     
     } else {
       let imageRawArray = route.params.pickedImageUri;
       imageRawArray.forEach((image) => {
@@ -60,7 +57,8 @@ export default function DamagesInspectionScreen({route, navigation}) {
         setImageSet((currentState) => [...currentState, imageSet]);
       });
     }
-  }, []);
+  }, [route.params]);
+
 
   const setCoordinates = (ev, index) => {
     let selected_icon = sc_icon_uri;
@@ -119,9 +117,11 @@ export default function DamagesInspectionScreen({route, navigation}) {
   const InspectionDataScreenHandler = () => {
     navigation.navigate('InspectionData', {
       imageSet: imageSet,
+      is_edit_mode: route.params.is_edit_mode? true: false,
+      existed_order: foundOrder && foundOrder,
       order_id: route.params.order_id,
-      odometer: foundOrder ? foundOrder[0].odometer : '',
-      driver_pickup_notes: foundOrder ? foundOrder[0].driver_pickup_notes : '',
+      odometer: route.params.existed_order_data ? route.params.existed_order_data[0].odometer : '',
+      driver_pickup_notes: route.params.existed_order_data ? route.params.existed_order_data[0].driver_pickup_notes : '',
     });
   };
 

@@ -1,18 +1,20 @@
 import React, {useState, useEffect} from 'react';
 import firestore from '@react-native-firebase/firestore';
-import {useSelector, useDispatch} from 'react-redux';
-import {View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
-
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Card} from 'react-native-paper';
-import {loadPickupOrders} from '../store/actions/orders';
 const db = firestore();
 
 export default function PickupOrdersScreen(props) {
-  const pickupOrders = useSelector((state) => state.order.pickupOrders);
-  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
   const [orders, setOrders] = useState([]); // Initial empty array
-
 
   useEffect(() => {
     const subscriber = firestore()
@@ -22,25 +24,40 @@ export default function PickupOrdersScreen(props) {
       .onSnapshot((querySnapshot) => {
         const orders = [];
         querySnapshot.forEach((documentSnapshot) => {
-          rawData=documentSnapshot.data()
-          if (rawData.order_status === "New"|| rawData.order_status === "Assigned"){
+          rawData = documentSnapshot.data();
+          if (
+            rawData.order_status === 'New' ||
+            rawData.order_status === 'Assigned'
+          ) {
             orders.push({
               ...rawData,
               key: documentSnapshot.id,
             });
           }
         });
-        dispatch(loadPickupOrders(orders))
+        const result = async () => {
+          try {
+            await AsyncStorage.setItem('pickupOrders', JSON.stringify(orders));
+          } catch (e) {
+            console.log('something went wrong');
+          }
+          try {
+            let fetchFromAsyncStorage = await AsyncStorage.getItem('pickupOrders');
+            setOrders(JSON.parse(fetchFromAsyncStorage))
+          } catch (e) {
+            console.log('something went wrong');
+          }
+        };
+        result()
       });
 
     // Unsubscribe from events when no longer in use
     return () => subscriber();
   }, []);
 
-  useEffect(()=>{
-    setOrders(pickupOrders)
+  useEffect(() => {
     setLoading(false);
-  },[pickupOrders])
+  }, [orders]);
 
   if (loading) {
     return (
@@ -55,7 +72,7 @@ export default function PickupOrdersScreen(props) {
       <FlatList
         data={orders}
         renderItem={({item}) => (
-            <View style={styles.screen} >
+          <View style={styles.screen}>
             <Card style={styles.card}>
               <Card.Content>
                 <View>
@@ -63,7 +80,7 @@ export default function PickupOrdersScreen(props) {
                     onPress={() => {
                       props.navigation.navigate('OrderDetails', {
                         order_data: item,
-                        order_id: item.key
+                        order_id: item.key,
                       });
                     }}>
                     <View>
@@ -71,15 +88,14 @@ export default function PickupOrdersScreen(props) {
                         <Text style={{fontWeight: '700'}}>
                           {item.order_shipper_inner_id}
                         </Text>
-                        <Text>{item.loadingInProgress ? 'upload in progress' : ''}</Text>
                         <Text>
-                          $ {item.order_payment.order_total_amount}
+                          {item.loadingInProgress ? 'upload in progress' : ''}
                         </Text>
+                        <Text>$ {item.order_payment.order_total_amount}</Text>
                       </View>
                       <View id="row_2" style={styles.row}>
                         <Text>
-                          {item.vehiclesArray.year}{' '}
-                          {item.vehiclesArray.make}{' '}
+                          {item.vehiclesArray.year} {item.vehiclesArray.make}{' '}
                           {item.vehiclesArray.model}
                         </Text>
                       </View>
@@ -89,9 +105,7 @@ export default function PickupOrdersScreen(props) {
                           {item.pickup.pickup_address.state}{' '}
                           {item.pickup.pickup_address.zip}{' '}
                         </Text>
-                        <Text>
-                          {item.pickup.pickup_scheduled_first_date}
-                        </Text>
+                        <Text>{item.pickup.pickup_scheduled_first_date}</Text>
                       </View>
                       <View id="row_4" style={styles.row}>
                         <Text>
@@ -115,25 +129,23 @@ export default function PickupOrdersScreen(props) {
   );
 }
 
-
 const styles = StyleSheet.create({
-    screen: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    row: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    card: {
-      padding: 2,
-      marginBottom: 4,
-      marginTop: 4,
-      width: '97%',
-      borderRadius: 5,
-      borderLeftWidth: 4,
-      borderColor: 'blue',
-    },
-  });
-  
+  screen: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  card: {
+    padding: 2,
+    marginBottom: 4,
+    marginTop: 4,
+    width: '97%',
+    borderRadius: 5,
+    borderLeftWidth: 4,
+    borderColor: 'blue',
+  },
+});
