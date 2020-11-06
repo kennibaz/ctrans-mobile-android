@@ -24,7 +24,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
     if (this.camera) {
       const newId = uuid();
       let path = RNFS.DocumentDirectoryPath + newId + '.jpg';
-      const options = {quality: 0.5, base64: true};
+      const options = {quality: 0.5, base64: true, orientation: 'landscapeLeft'};
       const data = await this.camera.takePictureAsync(options);
       await RNFS.writeFile(path, data.base64, 'base64');
       const correctedPath = 'file://' + path;

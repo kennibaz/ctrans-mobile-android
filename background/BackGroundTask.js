@@ -33,19 +33,22 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
         const reference = storage().ref(
           `/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`,
         );
-        const pathToFile = image.mergedImage;
+        const pathToFile = image.mergedImage ? image.mergedImage :image.backGroundImageUri
         await reference.putFile(pathToFile);
         const url = await storage()
           .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
           .getDownloadURL();
         // setUploadedImages((currentImages) => [...currentImages, url]);
         uploadedImagesUri.push(url);
+        console.log("done with photo")
       });
 
       await reference.putFile(signatureUri);
       const signatureResultUri = await storage()
         .ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`)
         .getDownloadURL();
+
+        console.log("done with signature")
 
       if (uploadedImagesUri.length === imagesArray.length) {
         db.collection('carriers-records')

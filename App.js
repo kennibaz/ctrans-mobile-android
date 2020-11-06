@@ -10,6 +10,8 @@ import ordersReducer from './store/reducers/orders';
 
 import MainNavigator from './navigation/MainNavigator';
 
+
+
 const db = firestore();
 
 const rootReducer = combineReducers({

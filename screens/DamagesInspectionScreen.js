@@ -77,6 +77,8 @@ export default function DamagesInspectionScreen({route, navigation}) {
       uri: selected_icon,
     };
 
+    console.log(ev.nativeEvent.locationX - 22, ev.nativeEvent.locationY - 22)
+
     currentArray = imageSet;
     currentArray[index].overlay.push(newImageCoordinates);
 
@@ -84,7 +86,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
     setReadyForShot(!readyForShot);
     setImageSet(currentArray);
 
-    setOverlay((currentOverlay) => [...currentOverlay, newImageCoordinates]);
+    // setOverlay((currentOverlay) => [...currentOverlay, newImageCoordinates]);
   };
 
   useEffect(() => {
@@ -198,11 +200,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
           {imageSet.map((back, indexBackImage) => (
             <View style={styles.middlePanel} key={indexBackImage}>
               <View
-                style={{
-                  flex: 1,
-                  width: Dimensions.get('window').width,
-                  height: Dimensions.get('window').height * 0.7,
-                }}>
+                  style={styles.imagePreview}>
                 <TouchableWithoutFeedback
                   style={{
                     flex: 1,
@@ -216,6 +214,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
                   }}>
                   <ImageBackground
                     source={{uri: back.backGroundImageUri}}
+
                     style={{width: '100%', height: '100%'}}>
                     {back.overlay.map((image, index) => (
                       <TouchableWithoutFeedback
@@ -238,12 +237,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
                     ))}
 
                     <View
-                      style={[
-                        styles.transparentBox,
-                        {
-                          transform: [{rotate: '90deg'}],
-                        },
-                      ]}>
+                      style={styles.transparentBox}>
                       <Text style={styles.transparentText}>
                         Pickup conditions {newDate} on @ Pinellas Park, FL 33781
                       </Text>
@@ -289,23 +283,25 @@ export default function DamagesInspectionScreen({route, navigation}) {
 
 const styles = StyleSheet.create({
   upperPanel: {
-    height: '15%',
+    flex: 1,
+
     width: '100%',
-    backgroundColor: 'black',
+    backgroundColor: 'red',
     justifyContent: 'center',
   },
   middlePanel: {
-    flex: 1,
-    height: '70%',
+    flex: 2,
+
     width: '100%',
     backgroundColor: 'black',
     justifyContent: 'center',
     flexDirection: 'row',
   },
   lowerPanel: {
-    height: '15%',
+    flex: 1,
+
     width: '100%',
-    backgroundColor: 'black',
+    backgroundColor: 'red',
     justifyContent: 'center',
   },
 
@@ -315,8 +311,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   transparentBox: {
-    left: -190,
-    top: 225,
+    left: -0,
+    top: 360,
     width: '100%',
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
@@ -324,4 +320,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: 'white',
   },
+  imagePreview: {
+    flex: 1,
+    // height: "80%"
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height * 0.8,
+  }
 });
