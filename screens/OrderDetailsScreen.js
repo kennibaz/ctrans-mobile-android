@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, StyleSheet, ScrollView} from 'react-native';
 import {Card, Button} from 'react-native-paper';
+import Orientation from 'react-native-orientation-locker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function OrderDetailsScreen({route, navigation}) {
@@ -8,6 +9,10 @@ export default function OrderDetailsScreen({route, navigation}) {
   const [existedOrder, setExistedOrder] = useState('');
   const [pickupOrders, setPickupOrders] = useState([]);
   const [pickupOrdersLocalStorage, setPickupOrdersLocalStorage] = useState([]);
+
+  useEffect(()=>{
+    Orientation.lockToPortrait(); //this will lock the view to Landscape
+ })
   useEffect(() => {
     const result = async () => {
       try {

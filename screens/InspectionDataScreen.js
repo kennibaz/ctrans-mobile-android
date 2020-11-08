@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {TextInput} from 'react-native-paper';
 import {View, Button} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Orientation from 'react-native-orientation-locker';
 import uuid from 'react-uuid';
 
 import {useDispatch} from 'react-redux';
@@ -12,6 +13,9 @@ export default function InspectionDataScreen({navigation, route}) {
   const dispatch = useDispatch();
   const [odometer, setOdometer] = useState('');
   const [notes, setNotes] = useState('');
+  useEffect(()=>{
+    Orientation.lockToPortrait(); //this will lock the view to Landscape
+ })
   useEffect(() => {
     setOdometer(route.params.odometer);
     setNotes(route.params.driver_pickup_notes);

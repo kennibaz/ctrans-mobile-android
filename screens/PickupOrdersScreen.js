@@ -10,11 +10,16 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Card} from 'react-native-paper';
+import Orientation from 'react-native-orientation-locker';
 const db = firestore();
 
 export default function PickupOrdersScreen(props) {
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
   const [orders, setOrders] = useState([]); // Initial empty array
+
+  useEffect(()=>{
+    Orientation.lockToPortrait(); //this will lock the view to Landscape
+ })
 
   useEffect(() => {
     const subscriber = firestore()

@@ -1,7 +1,11 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View, Text, TouchableWithoutFeedback, StyleSheet} from 'react-native';
+import Orientation from 'react-native-orientation-locker';
 
 export default function testScreen() {
+  useEffect(()=>{
+     Orientation.lockToLandscapeLeft(); //this will lock the view to Landscape
+  })
   const setCoordinates = (ev) => {
     console.log(ev.nativeEvent.locationX - 22, ev.nativeEvent.locationY - 22);
   };
@@ -22,7 +26,7 @@ export default function testScreen() {
 const styles = StyleSheet.create({
     middlePanel: {
     flex: 4,
-    height: '70%',
+    // height: '70%',
     backgroundColor: 'red',
   },
   upperPanel: {
@@ -32,12 +36,13 @@ const styles = StyleSheet.create({
   },
   lowerPanel: {
     flex:1,
-    height: "15%",
+    // height: "15%",
     backgroundColor: "green"
 },
   outerView: {
+    flexDirection:"row",
     backgroundColor: 'blue',
     flex: 1,
-    height: '100%',
+    // height: '100%',
   },
 });

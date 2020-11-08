@@ -1,5 +1,6 @@
 import React, {useEffect, useState, useRef} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Orientation from 'react-native-orientation-locker';
 import uuid from 'react-uuid';
 import {
   View,
@@ -14,6 +15,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   ImageBackground,
+  FlatList,
 } from 'react-native';
 import ViewShot from 'react-native-view-shot';
 
@@ -21,6 +23,7 @@ import sc_icon from '../assets/overlayIcons/sc.png';
 import c_icon from '../assets/overlayIcons/c.png';
 import p_icon from '../assets/overlayIcons/p.png';
 import InspectionDataScreen from './InspectionDataScreen';
+
 var RNFS = require('react-native-fs');
 
 const sc_icon_uri = Image.resolveAssetSource(sc_icon).uri;
@@ -41,24 +44,26 @@ export default function DamagesInspectionScreen({route, navigation}) {
 
   useEffect(() => {
     StatusBar.setHidden(true);
+    Orientation.lockToLandscapeLeft();
   }, []);
   useEffect(() => {
     if (route.params.is_edit_mode) {
       setImageSet(route.params.existed_order_data[0].imageSet);
       setFoundOrder(route.params.existed_order_data[0]);
-     
     } else {
       let imageRawArray = route.params.pickedImageUri;
+
       imageRawArray.forEach((image) => {
+        let key = uuid();
         const imageSet = {
           backGroundImageUri: image,
           overlay: [],
+          key: key,
         };
         setImageSet((currentState) => [...currentState, imageSet]);
       });
     }
   }, [route.params]);
-
 
   const setCoordinates = (ev, index) => {
     let selected_icon = sc_icon_uri;
@@ -77,16 +82,12 @@ export default function DamagesInspectionScreen({route, navigation}) {
       uri: selected_icon,
     };
 
-    console.log(ev.nativeEvent.locationX - 22, ev.nativeEvent.locationY - 22)
-
     currentArray = imageSet;
     currentArray[index].overlay.push(newImageCoordinates);
 
     setCurrentIndex(index);
     setReadyForShot(!readyForShot);
     setImageSet(currentArray);
-
-    // setOverlay((currentOverlay) => [...currentOverlay, newImageCoordinates]);
   };
 
   useEffect(() => {
@@ -113,17 +114,22 @@ export default function DamagesInspectionScreen({route, navigation}) {
   };
 
   const selectedIconHandler = (icon) => {
+    //set state of current selected icon
     setSelectedIcon(icon);
   };
 
   const InspectionDataScreenHandler = () => {
     navigation.navigate('InspectionData', {
       imageSet: imageSet,
-      is_edit_mode: route.params.is_edit_mode? true: false,
+      is_edit_mode: route.params.is_edit_mode ? true : false,
       existed_order: foundOrder && foundOrder,
       order_id: route.params.order_id,
-      odometer: route.params.existed_order_data ? route.params.existed_order_data[0].odometer : '',
-      driver_pickup_notes: route.params.existed_order_data ? route.params.existed_order_data[0].driver_pickup_notes : '',
+      odometer: route.params.existed_order_data
+        ? route.params.existed_order_data[0].odometer
+        : '',
+      driver_pickup_notes: route.params.existed_order_data
+        ? route.params.existed_order_data[0].driver_pickup_notes
+        : '',
     });
   };
 
@@ -137,193 +143,327 @@ export default function DamagesInspectionScreen({route, navigation}) {
 
   return (
     <View style={styles.screen}>
-      <View style={styles.lowerPanel}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'space-evenly',
-            alignItems: 'center',
-            flexDirection: 'row',
+      <View style={styles.icons}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            selectedIconHandler('sc');
           }}>
-          <TouchableWithoutFeedback
-            onPress={() => {
-              selectedIconHandler('sc');
-            }}>
-            <Image
-              style={{
-                width: '10%',
-                height: '50%',
-              }}
-              source={
-                selectedIcon === 'sc'
-                  ? require('../assets/overlayIcons/sc_green.png')
-                  : require('../assets/overlayIcons/sc.png')
-              }
-            />
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback
-            onPress={() => {
-              selectedIconHandler('c');
-            }}>
-            <Image
-              style={{
-                width: '10%',
-                height: '50%',
-              }}
-              source={
-                selectedIcon === 'c'
-                  ? require('../assets/overlayIcons/c_green.png')
-                  : require('../assets/overlayIcons/c.png')
-              }
-            />
-          </TouchableWithoutFeedback>
-          <TouchableWithoutFeedback
-            onPress={() => {
-              selectedIconHandler('p');
-            }}>
-            <Image
-              style={{
-                width: '10%',
-                height: '50%',
-              }}
-              source={
-                selectedIcon === 'p'
-                  ? require('../assets/overlayIcons/p_green.png')
-                  : require('../assets/overlayIcons/p.png')
-              }
-            />
-          </TouchableWithoutFeedback>
-        </View>
+          <Image
+            style={{
+              width: 70,
+              height: 70,
+            }}
+            resizeMode="contain"
+            source={
+              selectedIcon === 'sc'
+                ? require('../assets/overlayIcons/sc_green.png')
+                : require('../assets/overlayIcons/sc.png')
+            }
+          />
+        </TouchableWithoutFeedback>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            selectedIconHandler('c');
+          }}>
+          <Image
+            style={{
+              width: 70,
+              height: 70,
+            }}
+            resizeMode="contain"
+            source={
+              selectedIcon === 'c'
+                ? require('../assets/overlayIcons/c_green.png')
+                : require('../assets/overlayIcons/c.png')
+            }
+          />
+        </TouchableWithoutFeedback>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            selectedIconHandler('p');
+          }}>
+          <Image
+            style={{
+              width: 70,
+              height: 70,
+            }}
+            resizeMode="contain"
+            source={
+              selectedIcon === 'p'
+                ? require('../assets/overlayIcons/p_green.png')
+                : require('../assets/overlayIcons/p.png')
+            }
+          />
+        </TouchableWithoutFeedback>
       </View>
-      <ViewShot ref={viewShotRef} options={{format: 'jpg', quality: 0.9}}>
-        <ScrollView horizontal pagingEnabled>
-          {imageSet.map((back, indexBackImage) => (
-            <View style={styles.middlePanel} key={indexBackImage}>
-              <View
-                  style={styles.imagePreview}>
-                <TouchableWithoutFeedback
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    width: '100%',
-                    height: '100%',
-                  }}
-                  onPress={(ev) => {
-                    setCoordinates(ev, indexBackImage);
-                  }}>
-                  <ImageBackground
-                    source={{uri: back.backGroundImageUri}}
-
-                    style={{width: '100%', height: '100%'}}>
-                    {back.overlay.map((image, index) => (
-                      <TouchableWithoutFeedback
-                        key={index}
-                        onPress={() => {
-                          deleteMarkHandler(index, indexBackImage);
-                        }}>
-                        <Image
-                          style={{
-                            width: '10%',
-                            height: '10%',
-                            margin: 2,
-                            position: 'absolute',
-                            top: image.x,
-                            left: image.y,
-                          }}
-                          source={{uri: image.uri}}
-                        />
-                      </TouchableWithoutFeedback>
-                    ))}
-
-                    <View
-                      style={styles.transparentBox}>
-                      <Text style={styles.transparentText}>
-                        Pickup conditions {newDate} on @ Pinellas Park, FL 33781
-                      </Text>
-                    </View>
-                  </ImageBackground>
-                </TouchableWithoutFeedback>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
+      <ViewShot
+        style={styles.mainWindow}
+        ref={viewShotRef}
+        options={{format: 'jpg', quality: 0.9}}>
+        <View style={styles.mainWindow}>
+          <FlatList
+            data={imageSet}
+            renderItem={({item, index}) => (
+              <TouchableWithoutFeedback
+                onPress={(ev) => {
+                  setCoordinates(ev, index);
+                }}>
+                <ImageBackground
+                  style={styles.imagePreview}
+                  source={{uri: item.backGroundImageUri}}>
+                  {item.overlay.map((image, index) => (
+                    <TouchableWithoutFeedback
+                      key={index}
+                      onPress={() => {
+                        deleteMarkHandler(index, indexBackImage);
+                      }}>
+                      <Image
+                        style={{
+                          width: 50,
+                          height: 50,
+                          margin: 2,
+                          position: 'absolute',
+                          top: image.x,
+                          left: image.y,
+                        }}
+                        resizeMode="contain"
+                        source={{uri: image.uri}}
+                      />
+                    </TouchableWithoutFeedback>
+                  ))}
+                </ImageBackground>
+              </TouchableWithoutFeedback>
+            )}
+          />
+        </View>
       </ViewShot>
-      <View style={styles.upperPanel}>
-        <View
-          style={{
-            justifyContent: 'space-evenly',
-            alignItems: 'center',
-            flexDirection: 'row',
-          }}>
-          <View
-            style={[
-              styles.button,
-              {
-                transform: [{rotate: '90deg'}],
-              },
-            ]}>
-            <Button title="Photo" onPress={() => navigation.goBack()} />
-          </View>
+      <View style={styles.buttons}>
+        <View style={styles.button}>
+          <Button title="Photo" onPress={() => navigation.goBack()} />
+        </View>
 
-          <View
-            style={[
-              styles.button,
-              {
-                transform: [{rotate: '90deg'}],
-              },
-            ]}>
-            <Button title="Done" onPress={InspectionDataScreenHandler} />
-          </View>
+        <View style={styles.button}>
+          <Button title="Done" onPress={InspectionDataScreenHandler} />
         </View>
       </View>
     </View>
+
+    // <View style={styles.screen}>
+    //   <View style={styles.lowerPanel}>
+    //     <View
+    //       style={{
+    //         flex: 1,
+    //         justifyContent: 'space-around',
+    //         alignItems: 'center',
+    //         flexDirection: 'column',
+    //       }}>
+    //       <TouchableWithoutFeedback
+    //         onPress={() => {
+    //           selectedIconHandler('sc');
+    //         }}>
+    //         <Image
+    //           style={{
+    //             width: 70,
+    //             height: 70,
+    //           }}
+    //           resizeMode="contain"
+    //           source={
+    //             selectedIcon === 'sc'
+    //               ? require('../assets/overlayIcons/sc_green.png')
+    //               : require('../assets/overlayIcons/sc.png')
+    //           }
+    //         />
+    //       </TouchableWithoutFeedback>
+    //       <TouchableWithoutFeedback
+    //         onPress={() => {
+    //           selectedIconHandler('c');
+    //         }}>
+    //         <Image
+    //           style={{
+    //             width: 70,
+    //             height: 70,
+    //           }}
+    //          resizeMode="contain"
+    //           source={
+    //             selectedIcon === 'c'
+    //               ? require('../assets/overlayIcons/c_green.png')
+    //               : require('../assets/overlayIcons/c.png')
+    //           }
+    //         />
+    //       </TouchableWithoutFeedback>
+    //       <TouchableWithoutFeedback
+    //         onPress={() => {
+    //           selectedIconHandler('p');
+    //         }}>
+    //         <Image
+    //           style={{
+    //             width: 70,
+    //             height: 70,
+    //           }}
+    //           resizeMode="contain"
+    //           source={
+    //             selectedIcon === 'p'
+    //               ? require('../assets/overlayIcons/p_green.png')
+    //               : require('../assets/overlayIcons/p.png')
+    //           }
+    //         />
+    //       </TouchableWithoutFeedback>
+    //     </View>
+    //   </View>
+    // <ViewShot ref={viewShotRef} options={{format: 'jpg', quality: 0.9}}>
+    //   <ScrollView horizontal pagingEnabled>
+    //     {imageSet.map((back, indexBackImage) => (
+    //       <View style={styles.middlePanel} key={indexBackImage}>
+    //         <View
+    //             style={styles.imagePreview}>
+    //           <TouchableWithoutFeedback
+    //             style={{
+    //               flex: 1,
+    //               // flexDirection: 'row',
+    //               // justifyContent: 'center',
+    //               // width: '100%',
+    //               // height: '100%',
+    //             }}
+    //             onPress={(ev) => {
+    //               setCoordinates(ev, indexBackImage);
+    //             }}>
+    //             <ImageBackground
+    //               source={{uri: back.backGroundImageUri}}
+
+    //               style={{width: '100%', height: '100%'}}>
+    //               {back.overlay.map((image, index) => (
+    //                 <TouchableWithoutFeedback
+    //                   key={index}
+    //                   onPress={() => {
+    //                     deleteMarkHandler(index, indexBackImage);
+    //                   }}>
+    //                   <Image
+    //                     style={{
+    //                       width: 70,
+    //                       height: 70,
+    //                       margin: 2,
+    //                       position: 'absolute',
+    //                       top: image.x,
+    //                       left: image.y,
+    //                     }}
+    //                     resizeMode="contain"
+    //                     source={{uri: image.uri}}
+    //                   />
+    //                 </TouchableWithoutFeedback>
+    //               ))}
+
+    //               <View
+    //                 style={styles.transparentBox}>
+    //                 <Text style={styles.transparentText}>
+    //                   Pickup conditions {newDate} on @ Pinellas Park, FL 33781
+    //                 </Text>
+    //               </View>
+    //             </ImageBackground>
+    //           </TouchableWithoutFeedback>
+    //         </View>
+    //       </View>
+    //     ))}
+    //   </ScrollView>
+    // </ViewShot>
+    //   <View style={styles.upperPanel}>
+    //     <View
+    //       style={{
+    //         justifyContent: 'space-around',
+    //         alignItems: 'stretch',
+    //         flexDirection: 'column',
+    //         height:"100%"
+    //       }}>
+    //       <View
+    //         style={styles.button}>
+    //         <Button title="Photo" onPress={() => navigation.goBack()} />
+    //       </View>
+
+    //       <View
+    //         style={styles.button}>
+    //         <Button title="Done" onPress={InspectionDataScreenHandler} />
+    //       </View>
+    //     </View>
+    //   </View>
+    // </View>
   );
 }
 
+// const styles = StyleSheet.create({
+//   upperPanel: {
+//     flex: 1,
+//     // width: '100%',
+//     backgroundColor: 'red',
+//     justifyContent: 'center',
+//   },
+//   middlePanel: {
+//     flex: 7,
+//     // width: '100%',
+//     backgroundColor: 'black',
+//     justifyContent: 'center',
+//     flexDirection: 'row',
+//   },
+//   lowerPanel: {
+//     flex: 1,
+
+//     // width: '100%',
+//     backgroundColor: 'red',
+//     justifyContent: 'center',
+//   },
+
+//   screen: {
+//     flexDirection: 'row',
+//     height: '100%',
+//     width: '100%',
+//   },
+//   transparentBox: {
+//     left: -0,
+//     top: 360,
+//     width: '100%',
+//     backgroundColor: 'rgba(0, 0, 0, 0.3)',
+//   },
+//   transparentText: {
+//     fontSize: 15,
+//     color: 'white',
+//   },
+// imagePreview: {
+//   flex: 1,
+//   // height: "80%"
+//   width: Dimensions.get('window').width,
+//   height: Dimensions.get('window').height * 0.8,
+// }
+// });
+
 const styles = StyleSheet.create({
-  upperPanel: {
-    flex: 1,
-
-    width: '100%',
-    backgroundColor: 'red',
-    justifyContent: 'center',
-  },
-  middlePanel: {
-    flex: 2,
-
-    width: '100%',
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  lowerPanel: {
-    flex: 1,
-
-    width: '100%',
-    backgroundColor: 'red',
-    justifyContent: 'center',
-  },
-
   screen: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     height: '100%',
     width: '100%',
   },
-  transparentBox: {
-    left: -0,
-    top: 360,
-    width: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  transparentText: {
-    fontSize: 15,
-    color: 'white',
-  },
-  imagePreview: {
+  icons: {
     flex: 1,
-    // height: "80%"
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height * 0.8,
-  }
+
+    backgroundColor: 'black',
+    justifyContent: 'center',
+  },
+  mainWindow: {
+    flex: 6,
+    backgroundColor: 'black',
+    justifyContent: 'center',
+  },
+  buttons: {
+    flex: 1,
+    justifyContent: 'space-around',
+    backgroundColor: 'black',
+  },
+  // middlePanel: {
+  //   flex: 1,
+  //   width: '100%',
+  //   backgroundColor: 'black',
+  //   justifyContent: 'center',
+  //   flexDirection: 'row',
+  // },
+  imagePreview: {
+    width: Dimensions.get('window').width * 0.75,
+    height: Dimensions.get('window').height * 1,
+  },
 });
