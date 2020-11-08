@@ -85,8 +85,8 @@ export default function PickupOrdersScreen(props) {
                   <TouchableOpacity
                     onPress={() => {
                       props.navigation.navigate('OrderDetails', {
-                        order_data: item,
                         order_id: item.key,
+                        mode: 'pickup'
                       });
                     }}>
                     <View>

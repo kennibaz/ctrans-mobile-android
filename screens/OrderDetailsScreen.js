@@ -8,52 +8,113 @@ export default function OrderDetailsScreen({route, navigation}) {
   const [order, setOrder] = useState('');
   const [existedOrder, setExistedOrder] = useState('');
   const [pickupOrders, setPickupOrders] = useState([]);
+  const [deliveryOrders, setDeliveryOrders] = useState([]);
   const [pickupOrdersLocalStorage, setPickupOrdersLocalStorage] = useState([]);
+  const [deliveryOrdersLocalStorage, setDeliveryOrdersLocalStorage] = useState(
+    [],
+  );
 
-  useEffect(()=>{
+  useEffect(() => {
     Orientation.lockToPortrait(); //this will lock the view to Landscape
- })
+  });
+
+  /// //fetch all pickup orders from Async
   useEffect(() => {
-    const result = async () => {
-      try {
-        let fetchFromAsyncStorage = await AsyncStorage.getItem('pickupOrders');
-        setPickupOrders(JSON.parse(fetchFromAsyncStorage));
-      } catch (e) {
-        console.log('something went wrong');
-      }
-    };
-    result();
+    if (route.params.mode === 'pickup') {
+      const result = async () => {
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'pickupOrders',
+          );
+          setPickupOrders(JSON.parse(fetchFromAsyncStorage));
+        } catch (e) {
+          console.log('something went wrong');
+        }
+      };
+      result();
+    }
+    if (route.params.mode === 'delivery') {
+      const result = async () => {
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'deliveryOrders',
+          );
+          setDeliveryOrders(JSON.parse(fetchFromAsyncStorage));
+        } catch (e) {
+          console.log('something went wrong');
+        }
+      };
+      result();
+    }
   }, [route.params]);
 
   useEffect(() => {
-    const result = async () => {
-      try {
-        let fetchFromAsyncStorage = await AsyncStorage.getItem(
-          'pickupOrdersLocalStorage',
-        );
-        setPickupOrdersLocalStorage(JSON.parse(fetchFromAsyncStorage));
-      } catch (e) {
-        console.log('something went wrong');
-      }
-    };
-    result();
-  }, [route.params]);
-
-  useEffect(() => {
-    if (pickupOrdersLocalStorage && pickupOrdersLocalStorage.length > 0) {
-      let existingOrder = pickupOrdersLocalStorage.filter((order) => {
+    if (route.params.mode === 'pickup') {
+      // found only selected order from pickup orders
+      let foundOrder = pickupOrders.filter((order) => {
         return order.key === route.params.order_id;
       });
-      setExistedOrder(existingOrder);
+      setOrder(foundOrder[0]);
     }
-  }, [pickupOrdersLocalStorage]);
+    if (route.params.mode === 'delivery') {
+      // found only selected order from pickup orders
+      let foundOrder = deliveryOrders.filter((order) => {
+        return order.key === route.params.order_id;
+      });
+      setOrder(foundOrder[0]);
+    }
+  }, [pickupOrders, deliveryOrders]);
+
+  // fetch pickupOrders from local storage
+  useEffect(() => {
+    if (route.params.mode === 'pickup') {
+      const result = async () => {
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'pickupOrdersLocalStorage',
+          );
+          setPickupOrdersLocalStorage(JSON.parse(fetchFromAsyncStorage));
+        } catch (e) {
+          console.log('something went wrong');
+        }
+      };
+      result();
+    }
+    if (route.params.mode === 'delivery') {
+      const result = async () => {
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'deliveryOrdersLocalStorage',
+          );
+          setDeliveryOrdersLocalStorage(JSON.parse(fetchFromAsyncStorage));
+        } catch (e) {
+          console.log('something went wrong');
+        }
+      };
+      result();
+    }
+  }, [route.params]);
 
   useEffect(() => {
-    let foundOrder = pickupOrders.filter((order) => {
-      return order.key === route.params.order_id;
-    });
-    setOrder(foundOrder[0]);
-  }, [pickupOrders]);
+    if (route.params.mode === 'pickup') {
+      //if there is order in local storage which already has been inspected then set it in Existing order
+      if (pickupOrdersLocalStorage && pickupOrdersLocalStorage.length > 0) {
+        let existingOrder = pickupOrdersLocalStorage.filter((order) => {
+          return order.key === route.params.order_id;
+        });
+        setExistedOrder(existingOrder);
+      }
+    }
+    if (route.params.mode === 'delivery') {
+      //if there is order in local storage which already has been inspected then set it in Existing order
+      if (deliveryOrdersLocalStorage && deliveryOrdersLocalStorage.length > 0) {
+        let existingOrder = deliveryOrdersLocalStorage.filter((order) => {
+          return order.key === route.params.order_id;
+        });
+        setExistedOrder(existingOrder);
+      }
+    }
+  }, [pickupOrdersLocalStorage, deliveryOrdersLocalStorage]);
 
   if (!order) {
     return (
@@ -72,6 +133,57 @@ export default function OrderDetailsScreen({route, navigation}) {
       <View>
         <Text>Loading</Text>
       </View>
+    );
+  }
+
+
+  if (
+    deliveryOrdersLocalStorage &&
+    deliveryOrdersLocalStorage.length > 0 &&
+    !existedOrder
+  ) {
+    return (
+      <View>
+        <Text>Loading</Text>
+      </View>
+    );
+  }
+
+  let signatureContent;
+
+  if (route.params.mode === 'pickup') {
+    signatureContent = (
+      <Button
+        mode="contained"
+        onPress={() => {
+          navigation.navigate('Inspection', {
+            screen: 'InspectionSignature',
+            params: {
+              order_id: route.params.order_id,
+            },
+          });
+        }}
+        style={styles.button}>
+        Get pickup signature
+      </Button>
+    );
+  }
+
+  if (route.params.mode === 'delivery') {
+    signatureContent = (
+      <Button
+        mode="contained"
+        onPress={() => {
+          navigation.navigate('Inspection', {
+            screen: 'InspectionSignature',
+            params: {
+              order_id: route.params.order_id,
+            },
+          });
+        }}
+        style={styles.button}>
+        Get delivery signature
+      </Button>
     );
   }
 
@@ -229,21 +341,7 @@ export default function OrderDetailsScreen({route, navigation}) {
             <Text>Phone: {order.shipper.phone}</Text>
           </View>
         </Card.Content>
-        <Card.Actions>
-          <Button
-            mode="contained"
-            onPress={() => {
-              navigation.navigate('Inspection', {
-                screen: 'InspectionSignature',
-                params: {
-                  order_id: route.params.order_id,
-                },
-              });
-            }}
-            style={styles.button}>
-            Get signature
-          </Button>
-        </Card.Actions>
+        <Card.Actions>{signatureContent}</Card.Actions>
       </Card>
     </ScrollView>
   );

@@ -1,25 +1,18 @@
 import React, {useState, useEffect} from 'react';
 import firestore from '@react-native-firebase/firestore';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useSelector, useDispatch} from 'react-redux';
+import {View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity} from 'react-native';
+
 import {Card} from 'react-native-paper';
-import Orientation from 'react-native-orientation-locker';
+import {loadDeliveryOrders} from '../store/actions/orders';
 const db = firestore();
 
 export default function DeliveryOrdersScreen(props) {
+  const deliveryOrders = useSelector((state) => state.order.deliveryOrders);
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
   const [orders, setOrders] = useState([]); // Initial empty array
 
-  useEffect(()=>{
-    Orientation.lockToPortrait(); //this will lock the view to Landscape
- })
 
   useEffect(() => {
     const subscriber = firestore()
@@ -29,40 +22,25 @@ export default function DeliveryOrdersScreen(props) {
       .onSnapshot((querySnapshot) => {
         const orders = [];
         querySnapshot.forEach((documentSnapshot) => {
-          rawData = documentSnapshot.data();
-
-          if (
-            rawData.order_status === 'Picked' 
-          ) {
+          rawData=documentSnapshot.data()
+          if (rawData.order_status === "Picked"){
             orders.push({
               ...rawData,
               key: documentSnapshot.id,
             });
           }
         });
-        const result = async () => {
-          try {
-            await AsyncStorage.setItem('deliveryOrders', JSON.stringify(orders));
-          } catch (e) {
-            console.log('something went wrong');
-          }
-          try {
-            let fetchFromAsyncStorage = await AsyncStorage.getItem('deliveryOrders');
-            setOrders(JSON.parse(fetchFromAsyncStorage))
-          } catch (e) {
-            console.log('something went wrong');
-          }
-        };
-        result()
+        dispatch(loadDeliveryOrders(orders))
       });
 
     // Unsubscribe from events when no longer in use
     return () => subscriber();
   }, []);
 
-  useEffect(() => {
+  useEffect(()=>{
+    setOrders(deliveryOrders)
     setLoading(false);
-  }, [orders]);
+  },[deliveryOrders])
 
   if (loading) {
     return (
@@ -77,15 +55,15 @@ export default function DeliveryOrdersScreen(props) {
       <FlatList
         data={orders}
         renderItem={({item}) => (
-          <View style={styles.screen}>
+            <View style={styles.screen} >
             <Card style={styles.card}>
               <Card.Content>
                 <View>
                   <TouchableOpacity
                     onPress={() => {
                       props.navigation.navigate('OrderDetails', {
-                        order_id: item.key,
-                        mode: 'delivery'
+                        order_data: item,
+                        order_id: item.key
                       });
                     }}>
                     <View>
@@ -94,13 +72,13 @@ export default function DeliveryOrdersScreen(props) {
                           {item.order_shipper_inner_id}
                         </Text>
                         <Text>
-                          {item.loadingInProgress ? 'upload in progress' : ''}
+                          $ {item.order_payment.order_total_amount}
                         </Text>
-                        <Text>$ {item.order_payment.order_total_amount}</Text>
                       </View>
                       <View id="row_2" style={styles.row}>
                         <Text>
-                          {item.vehiclesArray.year} {item.vehiclesArray.make}{' '}
+                          {item.vehiclesArray.year}{' '}
+                          {item.vehiclesArray.make}{' '}
                           {item.vehiclesArray.model}
                         </Text>
                       </View>
@@ -110,7 +88,9 @@ export default function DeliveryOrdersScreen(props) {
                           {item.pickup.pickup_address.state}{' '}
                           {item.pickup.pickup_address.zip}{' '}
                         </Text>
-                        <Text>{item.pickup.pickup_scheduled_first_date}</Text>
+                        <Text>
+                          {item.pickup.pickup_scheduled_first_date}
+                        </Text>
                       </View>
                       <View id="row_4" style={styles.row}>
                         <Text>
@@ -134,23 +114,25 @@ export default function DeliveryOrdersScreen(props) {
   );
 }
 
+
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  card: {
-    padding: 2,
-    marginBottom: 4,
-    marginTop: 4,
-    width: '97%',
-    borderRadius: 5,
-    borderLeftWidth: 4,
-    borderColor: 'blue',
-  },
-});
+    screen: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    card: {
+      padding: 2,
+      marginBottom: 4,
+      marginTop: 4,
+      width: '97%',
+      borderRadius: 5,
+      borderLeftWidth: 4,
+      borderColor: 'blue',
+    },
+  });
+  
