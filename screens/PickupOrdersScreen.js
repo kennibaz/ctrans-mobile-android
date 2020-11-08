@@ -30,6 +30,7 @@ export default function PickupOrdersScreen(props) {
         const orders = [];
         querySnapshot.forEach((documentSnapshot) => {
           rawData = documentSnapshot.data();
+
           if (
             rawData.order_status === 'New' ||
             rawData.order_status === 'Assigned'

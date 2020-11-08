@@ -40,6 +40,8 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
           .getDownloadURL();
         // setUploadedImages((currentImages) => [...currentImages, url]);
         uploadedImagesUri.push(url);
+        console.log("rest of the array is", imagesArray.length)
+        imagesArray.shift()
         console.log("done with photo")
       });
 
@@ -50,7 +52,7 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
 
         console.log("done with signature")
 
-      if (uploadedImagesUri.length === imagesArray.length) {
+      if (imagesArray.length===0) {
         db.collection('carriers-records')
           .doc('c87U6WtSNRybGF0WrAXb')
           .collection('orders')

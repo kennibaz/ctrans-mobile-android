@@ -39,13 +39,12 @@ export default function DamagesInspectionScreen({route, navigation}) {
   const [overlay, setOverlay] = useState([]);
   const [selectedIcon, setSelectedIcon] = useState('sc');
   const [currentIndex, setCurrentIndex] = useState('');
-  const [readyForShot, setReadyForShot] = useState(0);
+  const [readyForShot, setReadyForShot] = useState('');
   const [foundOrder, setFoundOrder] = useState('');
-  const [prepare, setPrepare] = useState(false);
 
   useEffect(() => {
     StatusBar.setHidden(true);
-    Orientation.lockToPortrait();
+    Orientation.lockToLandscapeLeft();
   }, []);
   useEffect(() => {
     if (route.params.is_edit_mode) {
@@ -87,32 +86,25 @@ export default function DamagesInspectionScreen({route, navigation}) {
     currentArray[index].overlay.push(newImageCoordinates);
 
     setCurrentIndex(index);
-    setPrepare(!prepare);
-
+    setReadyForShot(!readyForShot);
     setImageSet(currentArray);
   };
 
   useEffect(() => {
-    setReadyForShot(readyForShot + 1);
-  }, [prepare]);
+    const result = async () => {
+      let currentArray = imageSet;
+      let index = currentIndex;
+      const newId = uuid();
+      let path = RNFS.DocumentDirectoryPath + newId + '.jpg';
+      const options = {quality: 0.5, base64: true};
+      const dataUri = await viewShotRef.current.capture();
+      const dataFile = await RNFS.readFile(dataUri, 'base64');
 
-  useEffect(() => {
-    if (readyForShot >1) {
-      const result = async () => {
-        let currentArray = imageSet;
-        let index = currentIndex;
-        const newId = uuid();
-        let path = RNFS.DocumentDirectoryPath + newId + '.jpg';
-        const options = {quality: 0.5, base64: true};
-        const dataUri = await viewShotRef.current.capture();
-        const dataFile = await RNFS.readFile(dataUri, 'base64');
-
-        await RNFS.writeFile(path, dataFile, 'base64');
-        const correctedPath = 'file://' + path;
-        currentArray[index].mergedImage = correctedPath;
-      };
-      result();
-    }
+      await RNFS.writeFile(path, dataFile, 'base64');
+      const correctedPath = 'file://' + path;
+      currentArray[index].mergedImage = correctedPath;
+    };
+    result();
   }, [readyForShot]);
 
   const deleteMarkHandler = (index, indexBackImage) => {
@@ -160,7 +152,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
             style={{
               width: 70,
               height: 70,
-              transform: [{rotate: '90deg'}],
             }}
             resizeMode="contain"
             source={
@@ -178,7 +169,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
             style={{
               width: 70,
               height: 70,
-              transform: [{rotate: '90deg'}],
             }}
             resizeMode="contain"
             source={
@@ -196,7 +186,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
             style={{
               width: 70,
               height: 70,
-              transform: [{rotate: '90deg'}],
             }}
             resizeMode="contain"
             source={
@@ -213,9 +202,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
         options={{format: 'jpg', quality: 0.9}}>
         <View style={styles.mainWindow}>
           <FlatList
-            horizontal
-            pagingEnabled
-            // onScrollBeginDrag={()=>{setReadyForShot(!readyForShot)}}
             data={imageSet}
             renderItem={({item, index}) => (
               <TouchableWithoutFeedback
@@ -225,11 +211,11 @@ export default function DamagesInspectionScreen({route, navigation}) {
                 <ImageBackground
                   style={styles.imagePreview}
                   source={{uri: item.backGroundImageUri}}>
-                  {item.overlay.map((image, indexIcon) => (
+                  {item.overlay.map((image, index) => (
                     <TouchableWithoutFeedback
-                      key={indexIcon}
+                      key={index}
                       onPress={() => {
-                        deleteMarkHandler(indexIcon, index);
+                        deleteMarkHandler(index, indexBackImage);
                       }}>
                       <Image
                         style={{
@@ -239,7 +225,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
                           position: 'absolute',
                           top: image.x,
                           left: image.y,
-                          transform: [{rotate: '90deg'}],
                         }}
                         resizeMode="contain"
                         source={{uri: image.uri}}
@@ -253,23 +238,11 @@ export default function DamagesInspectionScreen({route, navigation}) {
         </View>
       </ViewShot>
       <View style={styles.buttons}>
-        <View
-          style={[
-            styles.button,
-            {
-              transform: [{rotate: '90deg'}],
-            },
-          ]}>
+        <View style={styles.button}>
           <Button title="Photo" onPress={() => navigation.goBack()} />
         </View>
 
-        <View
-          style={[
-            styles.button,
-            {
-              transform: [{rotate: '90deg'}],
-            },
-          ]}>
+        <View style={styles.button}>
           <Button title="Done" onPress={InspectionDataScreenHandler} />
         </View>
       </View>
@@ -462,25 +435,23 @@ export default function DamagesInspectionScreen({route, navigation}) {
 
 const styles = StyleSheet.create({
   screen: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     height: '100%',
     width: '100%',
   },
   icons: {
     flex: 1,
-    flexDirection: 'row',
 
     backgroundColor: 'black',
     justifyContent: 'center',
   },
   mainWindow: {
-    flex: 7,
+    flex: 6,
     backgroundColor: 'black',
     justifyContent: 'center',
   },
   buttons: {
     flex: 1,
-    flexDirection: 'row',
     justifyContent: 'space-around',
     backgroundColor: 'black',
   },
@@ -492,7 +463,7 @@ const styles = StyleSheet.create({
   //   flexDirection: 'row',
   // },
   imagePreview: {
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height * 0.8,
+    width: Dimensions.get('window').width * 0.75,
+    height: Dimensions.get('window').height * 1,
   },
 });

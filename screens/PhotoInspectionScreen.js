@@ -7,7 +7,7 @@ import {
   Dimensions,
   StatusBar,
   Image,
-  ScrollView,
+  Text,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 import Orientation from 'react-native-orientation-locker';
@@ -19,9 +19,10 @@ export default function PhotoInspectionScreen({route, navigation}) {
   const [damagesScreenButtonEnabled, setDamagesScreenButtonEnabled] = useState(
     false,
   );
+  const [currentOrientationStatus, setCurrentOrientationStatus] = useState('');
   useEffect(() => {
     StatusBar.setHidden(true);
-    Orientation.lockToLandscapeLeft();
+    Orientation.lockToPortrait();
   });
 
   const takePicture = async () => {
@@ -31,7 +32,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
       const options = {
         quality: 0.5,
         base64: true,
-        orientation: 'landscapeLeft',
+        orientation: 'portrait',
       };
       const data = await this.camera.takePictureAsync(options);
       await RNFS.writeFile(path, data.base64, 'base64');
@@ -40,6 +41,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
       setDamagesScreenButtonEnabled(true);
     }
   };
+
   return (
     <View style={styles.screen}>
       <View style={styles.middlePanel}>
@@ -50,7 +52,8 @@ export default function PhotoInspectionScreen({route, navigation}) {
           style={styles.preview}
           ratio={'16:9'}
           type={RNCamera.Constants.Type.back}
-          flashMode={RNCamera.Constants.FlashMode.on}
+          captureAudio={false}
+          flashMode={RNCamera.Constants.FlashMode.off}
           androidCameraPermissionOptions={{
             title: 'Permission to use camera',
             message: 'We need your permission to use your camera',
@@ -62,18 +65,36 @@ export default function PhotoInspectionScreen({route, navigation}) {
         <View
           style={{
             justifyContent: 'space-around',
-            alignItems: 'stretch',
-            flexDirection: 'column',
-            height:"100%"
+            alignItems: 'center',
+            flexDirection: 'row',
+            height: '100%',
           }}>
-          <View style={styles.button}>
+          <View
+            style={[
+              styles.button,
+              {
+                transform: [{rotate: '90deg'}],
+              },
+            ]}>
             <Button title="Cancel" />
           </View>
 
-          <View style={styles.button}>
+          <View
+            style={[
+              styles.button,
+              {
+                transform: [{rotate: '90deg'}],
+              },
+            ]}>
             <Button title="Snap" onPress={takePicture} />
           </View>
-          <View style={styles.button}>
+          <View
+            style={[
+              styles.button,
+              {
+                transform: [{rotate: '90deg'}],
+              },
+            ]}>
             <Button
               title="Damages"
               disabled={!damagesScreenButtonEnabled}
@@ -89,26 +110,26 @@ export default function PhotoInspectionScreen({route, navigation}) {
       </View>
       <View style={styles.lowerPanel}>
         {/* <ScrollView > */}
-          <View
-            style={{
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              flexDirection: 'column',
-            }}>
-            {pickedImageUri.map((image) => (
-              <TouchableOpacity
-                key={image}
-                onPress={() => {
-                  navigation.navigate('DamageInspection', {
-                    uri: image,
-                    pickedImageUri: pickedImageUri,
-                    order_id: route.params.order_id,
-                  });
-                }}>
-                <Image style={styles.image} source={{uri: image}} />
-              </TouchableOpacity>
-            ))}
-          </View>
+        <View
+          style={{
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            flexDirection: 'row',
+          }}>
+          {pickedImageUri.map((image) => (
+            <TouchableOpacity
+              key={image}
+              onPress={() => {
+                navigation.navigate('DamageInspection', {
+                  uri: image,
+                  pickedImageUri: pickedImageUri,
+                  order_id: route.params.order_id,
+                });
+              }}>
+              <Image style={styles.image} source={{uri: image}} />
+            </TouchableOpacity>
+          ))}
+        </View>
         {/* </ScrollView> */}
       </View>
     </View>
@@ -117,7 +138,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
 
 const styles = StyleSheet.create({
   screen: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     height: '100%',
     width: '100%',
   },
@@ -155,7 +176,7 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').height * 0.7,
     backgroundColor: 'black',
   },
-  button: {},
+
   container: {
     flex: 1,
     flexDirection: 'column',
@@ -169,10 +190,10 @@ const styles = StyleSheet.create({
 
   image: {
     width: 80,
-    height: '40%',
+    height: '95%',
     margin: 2,
-    borderColor:"blue",
+    borderColor: 'blue',
     borderRadius: 10,
-    borderWidth: 2
+    borderWidth: 2,
   },
 });
