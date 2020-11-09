@@ -7,6 +7,7 @@ import {
   Dimensions,
   StatusBar,
   Image,
+  Text
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 import Orientation from 'react-native-orientation-locker';
@@ -18,7 +19,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
   const [damagesScreenButtonEnabled, setDamagesScreenButtonEnabled] = useState(
     false,
   );
-  // const [currentOrientationStatus, setCurrentOrientationStatus] = useState('');
+
   useEffect(() => {
     StatusBar.setHidden(true);
     Orientation.lockToPortrait();
@@ -58,7 +59,16 @@ export default function PhotoInspectionScreen({route, navigation}) {
             message: 'We need your permission to use your camera',
             buttonPositive: 'Ok',
             buttonNegative: 'Cancel',
-          }}></RNCamera>
+          }}>
+          {({status}) => {
+            if (status !== 'READY')
+              return (
+                <View>
+                  <Text>Loading</Text>
+                </View>
+              );
+          }}
+        </RNCamera>
       </View>
       <View style={styles.upperPanel}>
         <View
@@ -75,7 +85,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
                 transform: [{rotate: '90deg'}],
               },
             ]}>
-            <Button title="Cancel" />
+            <Button title="Cancel" onPress={() => navigation.goBack()} />
           </View>
 
           <View
@@ -101,7 +111,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
                 navigation.navigate('DamageInspection', {
                   pickedImageUri: pickedImageUri,
                   order_id: route.params.order_id,
-                  mode: route.params.mode
+                  mode: route.params.mode,
                 });
               }}
             />
@@ -115,7 +125,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
             alignItems: 'center',
             flexDirection: 'row',
           }}>
-          {pickedImageUri.map((image) => (
+          {pickedImageUri.map((image, index) => (
             <TouchableOpacity
               key={image}
               onPress={() => {
@@ -123,7 +133,8 @@ export default function PhotoInspectionScreen({route, navigation}) {
                   uri: image,
                   pickedImageUri: pickedImageUri,
                   order_id: route.params.order_id,
-                  mode: route.params.mode
+                  mode: route.params.mode,
+                  index: index
                 });
               }}>
               <Image style={styles.image} source={{uri: image}} />
@@ -188,10 +199,10 @@ const styles = StyleSheet.create({
   },
 
   image: {
-    width: 80,
+    width: 60,
     height: '95%',
     margin: 2,
-    borderColor: 'blue',
+    borderColor: 'black',
     borderRadius: 10,
     borderWidth: 2,
   },

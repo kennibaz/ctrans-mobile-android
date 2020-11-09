@@ -29,6 +29,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
   let currentDate = new Date(); //use your date here
   let newDate = currentDate.toLocaleDateString('en-US'); // "en-US" gives date in US Format - mm/dd/yy
   const viewShotRef = useRef(null);
+  const flatlistRef = useRef();
   const [imageSet, setImageSet] = useState([]);
   const [selectedIcon, setSelectedIcon] = useState('sc');
   const [currentIndex, setCurrentIndex] = useState('');
@@ -40,6 +41,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
     StatusBar.setHidden(true);
     Orientation.lockToPortrait();
   }, []);
+
   useEffect(() => {
     if (route.params.is_edit_mode) {
       setImageSet(route.params.existed_order_data[0].imageSet);
@@ -90,7 +92,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
   }, [prepare]);
 
   useEffect(() => {
-    if (readyForShot >1) {
+    if (readyForShot > 1) {
       const result = async () => {
         let currentArray = imageSet;
         let index = currentIndex;
@@ -203,12 +205,15 @@ export default function DamagesInspectionScreen({route, navigation}) {
       </View>
       <ViewShot
         style={styles.mainWindow}
-        ref={viewShotRef}
         options={{format: 'jpg', quality: 0.9}}>
         <View style={styles.mainWindow}>
           <FlatList
             horizontal
             pagingEnabled
+            getItemLayout={(data, index) => (
+              {length: Dimensions.get('window').height * 0.8, offset: Dimensions.get('window').width*index, index}
+            )}
+            initialScrollIndex={route.params.index}
             // onScrollBeginDrag={()=>{setReadyForShot(!readyForShot)}}
             data={imageSet}
             renderItem={({item, index}) => (
@@ -268,12 +273,8 @@ export default function DamagesInspectionScreen({route, navigation}) {
         </View>
       </View>
     </View>
-
-
   );
 }
-
-
 
 const styles = StyleSheet.create({
   screen: {

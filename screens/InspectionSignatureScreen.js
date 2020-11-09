@@ -5,8 +5,6 @@ import firestore from '@react-native-firebase/firestore';
 import SignatureScreen from 'react-native-signature-canvas';
 import {TextInput} from 'react-native-paper';
 
-import storage from '@react-native-firebase/storage';
-import {updateSignature} from '../store/actions/orders';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 var RNFS = require('react-native-fs');
 import {View, Button} from 'react-native';

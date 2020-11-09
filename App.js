@@ -10,8 +10,6 @@ import ordersReducer from './store/reducers/orders';
 
 import MainNavigator from './navigation/MainNavigator';
 
-import TestScreen from './screens/testScreen';
-
 const db = firestore();
 
 const rootReducer = combineReducers({
@@ -24,7 +22,6 @@ export default function App1() {
     <PaperProvider>
       <Provider store={store}>
         <MainNavigator />
-        {/* <TestScreen/> */}
       </Provider>
     </PaperProvider>
   );
