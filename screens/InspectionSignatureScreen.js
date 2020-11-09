@@ -1,5 +1,5 @@
 import React, {useRef, useState, useEffect} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
+
 import uuid from 'react-uuid';
 import firestore from '@react-native-firebase/firestore';
 import SignatureScreen from 'react-native-signature-canvas';
@@ -9,110 +9,187 @@ import storage from '@react-native-firebase/storage';
 import {updateSignature} from '../store/actions/orders';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 var RNFS = require('react-native-fs');
-import {
-  View,
-  Button,
-} from 'react-native';
+import {View, Button} from 'react-native';
 const db = firestore();
 
 export default function InspectionSignatureScreen({route, navigation}) {
   const ref = useRef();
-  const dispatch = useDispatch();
-  const pickupOrders = useSelector((state) => state.order.pickupOrders);
-  const [localPickupOrders, setLocalPickupOrders] = useState('')
+  const [localPickupOrders, setLocalPickupOrders] = useState('');
+  const [localDeliveryOrders, setLocalDeliveryOrders] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [signatureUri, setSignatureUri] = useState('');
   const [readyToSave, setReadyToSave] = useState(false);
   const [uploadDone, setUploadDone] = useState(false);
 
-
-  useEffect(()=>{
-    const result = async ()=>{
-      
-      try {
-        let fetchFromAsyncStorage = await AsyncStorage.getItem(
-          'pickupOrdersLocalStorage',
-        );
-        if (fetchFromAsyncStorage !== null) {
-          setLocalPickupOrders(JSON.parse(fetchFromAsyncStorage)) 
-          console.log(JSON.parse(fetchFromAsyncStorage))
+  useEffect(() => {
+    const result = async () => {
+      if (route.params.mode === 'pickup') {
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'pickupOrdersLocalStorage',
+          );
+          if (fetchFromAsyncStorage !== null) {
+            setLocalPickupOrders(JSON.parse(fetchFromAsyncStorage));
+            console.log(JSON.parse(fetchFromAsyncStorage));
+          }
+        } catch (e) {
+          console.log('something went wrong', e);
         }
-      } catch (e) {
-        console.log('something went wrong',e);
       }
-    }
-    result()
-  },[])
+      if (route.params.mode === 'delivery') {
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'deliveryOrdersLocalStorage',
+          );
+          if (fetchFromAsyncStorage !== null) {
+            setLocalDeliveryOrders(JSON.parse(fetchFromAsyncStorage));
+            console.log(JSON.parse(fetchFromAsyncStorage));
+          }
+        } catch (e) {
+          console.log('something went wrong', e);
+        }
+      }
+    };
+    result();
+  }, []);
 
   const onPickupHandler = async () => {
-    const foundOrder = localPickupOrders.filter((order) => {
-      return order.key === route.params.order_id;
-    });
-    const foundOrderIndex = localPickupOrders.findIndex((order)=>{
-      return order.key === route.params.order_id
-    })
-    const imagesArray = foundOrder[0].imageSet;
-    // add a task to background
-    let taskId = uuid()
-    let taskBody = {
-      taskId: taskId,
-      taskBody: {
-        signatureUri: signatureUri,
-        odometer: foundOrder[0].odometer,
-        pickupNotes: foundOrder[0].driver_pickup_notes,
-        imagesArray: imagesArray,
-        name_on_pickup_signature: name,
-        email_on_pickup_signature: email,
-        doc_id: route.params.order_id
+    if(route.params.mode === "pickup"){
+      const foundOrder = localPickupOrders.filter((order) => {
+        return order.key === route.params.order_id;
+      });
+      const foundOrderIndex = localPickupOrders.findIndex((order) => {
+        return order.key === route.params.order_id;
+      });
+      const imagesArray = foundOrder[0].imageSet;
+      // add a task to background
+      let taskId = uuid();
+      let taskBody = {
+        taskId: taskId,
+        taskBody: {
+          mode: "pickup",
+          signatureUri: signatureUri,
+          odometer: foundOrder[0].odometer,
+          pickupNotes: foundOrder[0].driver_pickup_notes,
+          imagesArray: imagesArray,
+          name_on_pickup_signature: name,
+          email_on_pickup_signature: email,
+          doc_id: route.params.order_id,
+        },
+      };
+  
+      let currentTaskArray = [];
+      try {
+        const value = await AsyncStorage.getItem('TASKS');
+        if (value === null) {
+          await AsyncStorage.setItem('TASKS', JSON.stringify(taskBody));
+        }
+        if (value !== null) {
+          currentTaskArray = JSON.parse(value);
+        }
+      } catch (error) {
+        console.log(error);
       }
-    }
-
-    let currentTaskArray =[]
-    try {
-      const value = await AsyncStorage.getItem('TASKS');
-      if(value === null) {
-        await AsyncStorage.setItem('TASKS', JSON.stringify(taskBody))
+      currentTaskArray.push(taskBody);
+  
+      try {
+        await AsyncStorage.setItem('TASKS', JSON.stringify(currentTaskArray));
+      } catch (e) {
+        console.log('something went wrong');
       }
-      if (value !== null) {
-        currentTaskArray = JSON.parse(value)
+  
+      db.collection('carriers-records')
+        .doc('c87U6WtSNRybGF0WrAXb')
+        .collection('orders')
+        .doc(route.params.order_id)
+        .update({
+          loadingInProgress: true,
+        });
+  
+      localPickupOrders.splice(foundOrderIndex, 1);
+      try {
+        await AsyncStorage.setItem(
+          'pickupOrdersLocalStorage',
+          JSON.stringify(localPickupOrders),
+        );
+      } catch (e) {
+        console.log('something went wrong');
       }
-    } catch (error) {
-      console.log(error)
+      setUploadDone(true);
     }
-    currentTaskArray.push(taskBody)
-
-
-    try {
-      await AsyncStorage.setItem('TASKS', JSON.stringify(currentTaskArray))
-    } catch (e) {
-      console.log('something went wrong')
+    if(route.params.mode === "delivery"){
+      const foundOrder = localDeliveryOrders.filter((order) => {
+        return order.key === route.params.order_id;
+      });
+      const foundOrderIndex = localDeliveryOrders.findIndex((order) => {
+        return order.key === route.params.order_id;
+      });
+      const imagesArray = foundOrder[0].imageSet;
+      // add a task to background
+      let taskId = uuid();
+      let taskBody = {
+        taskId: taskId,
+        taskBody: {
+          mode: "delivery",
+          signatureUri: signatureUri,
+          odometer: foundOrder[0].odometer,
+          pickupNotes: foundOrder[0].driver_pickup_notes,
+          imagesArray: imagesArray,
+          name_on_pickup_signature: name,
+          email_on_pickup_signature: email,
+          doc_id: route.params.order_id,
+        },
+      };
+  
+      let currentTaskArray = [];
+      try {
+        const value = await AsyncStorage.getItem('TASKS');
+        if (value === null) {
+          await AsyncStorage.setItem('TASKS', JSON.stringify(taskBody));
+        }
+        if (value !== null) {
+          currentTaskArray = JSON.parse(value);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      currentTaskArray.push(taskBody);
+  
+      try {
+        await AsyncStorage.setItem('TASKS', JSON.stringify(currentTaskArray));
+      } catch (e) {
+        console.log('something went wrong');
+      }
+  
+      db.collection('carriers-records')
+        .doc('c87U6WtSNRybGF0WrAXb')
+        .collection('orders')
+        .doc(route.params.order_id)
+        .update({
+          loadingInProgress: true,
+        });
+  
+      localDeliveryOrders.splice(foundOrderIndex, 1);
+      try {
+        await AsyncStorage.setItem(
+          'deliveryOrdersLocalStorage',
+          JSON.stringify(localDeliveryOrders),
+        );
+      } catch (e) {
+        console.log('something went wrong');
+      }
+      setUploadDone(true);
     }
-
-    db.collection('carriers-records')
-          .doc('c87U6WtSNRybGF0WrAXb')
-          .collection('orders')
-          .doc(route.params.order_id).update({
-            loadingInProgress: true
-          })
-
-    localPickupOrders.splice(foundOrderIndex,1)
-    try {
-      await AsyncStorage.setItem(
-        'pickupOrdersLocalStorage',
-        JSON.stringify(localPickupOrders),
-      );
-    } catch (e) {
-      console.log('something went wrong');
-    }
-    setUploadDone(true)
     
   };
 
-
   useEffect(() => {
-    if (uploadDone) {
+    if (uploadDone && route.params.mode ==="pickup") {
       navigation.navigate('PickupOrders');
+    }
+    if (uploadDone && route.params.mode ==="delivery") {
+      navigation.navigate('DeliveryOrders');
     }
   }, [uploadDone]);
 

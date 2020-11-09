@@ -7,7 +7,6 @@ import {
   Dimensions,
   StatusBar,
   Image,
-  Text,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 import Orientation from 'react-native-orientation-locker';
@@ -19,7 +18,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
   const [damagesScreenButtonEnabled, setDamagesScreenButtonEnabled] = useState(
     false,
   );
-  const [currentOrientationStatus, setCurrentOrientationStatus] = useState('');
+  // const [currentOrientationStatus, setCurrentOrientationStatus] = useState('');
   useEffect(() => {
     StatusBar.setHidden(true);
     Orientation.lockToPortrait();
@@ -102,6 +101,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
                 navigation.navigate('DamageInspection', {
                   pickedImageUri: pickedImageUri,
                   order_id: route.params.order_id,
+                  mode: route.params.mode
                 });
               }}
             />
@@ -109,7 +109,6 @@ export default function PhotoInspectionScreen({route, navigation}) {
         </View>
       </View>
       <View style={styles.lowerPanel}>
-        {/* <ScrollView > */}
         <View
           style={{
             justifyContent: 'flex-start',
@@ -124,13 +123,13 @@ export default function PhotoInspectionScreen({route, navigation}) {
                   uri: image,
                   pickedImageUri: pickedImageUri,
                   order_id: route.params.order_id,
+                  mode: route.params.mode
                 });
               }}>
               <Image style={styles.image} source={{uri: image}} />
             </TouchableOpacity>
           ))}
         </View>
-        {/* </ScrollView> */}
       </View>
     </View>
   );

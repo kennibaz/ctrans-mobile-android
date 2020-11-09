@@ -3,19 +3,16 @@ import {TextInput} from 'react-native-paper';
 import {View, Button} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Orientation from 'react-native-orientation-locker';
-import uuid from 'react-uuid';
-
-import {useDispatch} from 'react-redux';
-import {updateImages} from '../store/actions/orders';
 
 export default function InspectionDataScreen({navigation, route}) {
   const [pickupOrders, setPickupOrders] = useState([]);
-  const dispatch = useDispatch();
+  const [deliveryOrders, setDeliveryOrders] = useState([]);
+
   const [odometer, setOdometer] = useState('');
   const [notes, setNotes] = useState('');
-  useEffect(()=>{
+  useEffect(() => {
     Orientation.lockToPortrait(); //this will lock the view to Landscape
- })
+  });
   useEffect(() => {
     setOdometer(route.params.odometer);
     setNotes(route.params.driver_pickup_notes);
@@ -23,53 +20,113 @@ export default function InspectionDataScreen({navigation, route}) {
 
   useEffect(() => {
     const result = async () => {
-      try {
-        let fetchFromAsyncStorage = await AsyncStorage.getItem('pickupOrders');
-        setPickupOrders(JSON.parse(fetchFromAsyncStorage));
-      } catch (e) {
-        console.log('something went wrong');
+      console.log('useeffect');
+      if (route.params.mode === 'pickup') {
+        console.log('useeffect2');
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'pickupOrders',
+          );
+          setPickupOrders(JSON.parse(fetchFromAsyncStorage));
+        } catch (e) {
+          console.log('something went wrong');
+        }
+      }
+      if (route.params.mode === 'delivery') {
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'deliveryOrders',
+          );
+          setDeliveryOrders(JSON.parse(fetchFromAsyncStorage));
+        } catch (e) {
+          console.log('something went wrong');
+        }
       }
     };
     result();
-  }, []);
+  },[]);
 
   const saveButtonHandler = async () => {
     if (!route.params.is_edit_mode) {
-      let foundOrder = pickupOrders.filter((order) => {
-        return order.key === route.params.order_id;
-      });
-      let currentPickupOrders = [];
-      foundOrder[0].imageSet = route.params.imageSet;
-      foundOrder[0].odometer = odometer;
-      foundOrder[0].driver_pickup_notes = notes;
-      foundOrder[0].is_edit_mode = true;
+      if (route.params.mode === 'pickup') {
+        console.log('start');
+        let foundOrder = pickupOrders.filter((order) => {
+          return order.key === route.params.order_id;
+        });
+        console.log(foundOrder);
+        let currentPickupOrders = [];
+        foundOrder[0].imageSet = route.params.imageSet;
+        foundOrder[0].odometer = odometer;
+        foundOrder[0].driver_pickup_notes = notes;
+        foundOrder[0].is_edit_mode = true;
 
-      try {
-        let fetchFromAsyncStorage = await AsyncStorage.getItem(
-          'pickupOrdersLocalStorage',
-        );
-        if (fetchFromAsyncStorage !== null) {
-          currentPickupOrders = JSON.parse(fetchFromAsyncStorage);
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'pickupOrdersLocalStorage',
+          );
+          if (fetchFromAsyncStorage !== null) {
+            currentPickupOrders = JSON.parse(fetchFromAsyncStorage);
+          }
+        } catch (e) {
+          console.log('something went wrong');
         }
-      } catch (e) {
-        console.log('something went wrong');
+
+        currentPickupOrders = [...currentPickupOrders, foundOrder[0]];
+        console.log(currentPickupOrders);
+
+        try {
+          await AsyncStorage.setItem(
+            'pickupOrdersLocalStorage',
+            JSON.stringify(currentPickupOrders),
+          );
+        } catch (e) {
+          console.log('something went wrong');
+        }
+
+        navigation.navigate('OrderDetails', {
+          order_id: route.params.order_id,
+          reload: true,
+          mode: route.params.mode,
+        });
       }
+      if (route.params.mode === 'delivery') {
+        let foundOrder = deliveryOrders.filter((order) => {
+          return order.key === route.params.order_id;
+        });
+        let currentDeliveryOrders = [];
+        foundOrder[0].imageSet = route.params.imageSet;
+        foundOrder[0].odometer = odometer;
+        foundOrder[0].driver_pickup_notes = notes;
+        foundOrder[0].is_edit_mode = true;
 
-      currentPickupOrders = [...currentPickupOrders, foundOrder[0]];
+        try {
+          let fetchFromAsyncStorage = await AsyncStorage.getItem(
+            'deliveryOrdersLocalStorage',
+          );
+          if (fetchFromAsyncStorage !== null) {
+            currentDeliveryOrders = JSON.parse(fetchFromAsyncStorage);
+          }
+        } catch (e) {
+          console.log('something went wrong');
+        }
 
-      try {
-        await AsyncStorage.setItem(
-          'pickupOrdersLocalStorage',
-          JSON.stringify(currentPickupOrders),
-        );
-      } catch (e) {
-        console.log('something went wrong');
+        currentDeliveryOrders = [...currentDeliveryOrders, foundOrder[0]];
+
+        try {
+          await AsyncStorage.setItem(
+            'deliveryOrdersLocalStorage',
+            JSON.stringify(currentDeliveryOrders),
+          );
+        } catch (e) {
+          console.log('something went wrong');
+        }
+
+        navigation.navigate('OrderDetails', {
+          order_id: route.params.order_id,
+          reload: true,
+          mode: route.params.mode,
+        });
       }
-
-      navigation.navigate('OrderDetails', {
-        order_id: route.params.order_id,
-        reload: true,
-      });
     }
     if (route.params.is_edit_mode) {
       let foundOrder = route.params.existed_order;

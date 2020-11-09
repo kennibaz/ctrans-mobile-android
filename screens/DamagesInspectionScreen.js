@@ -1,5 +1,4 @@
 import React, {useEffect, useState, useRef} from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Orientation from 'react-native-orientation-locker';
 import uuid from 'react-uuid';
 import {
@@ -7,12 +6,9 @@ import {
   Text,
   Button,
   StyleSheet,
-  Alert,
-  TouchableOpacity,
   Dimensions,
   StatusBar,
   Image,
-  ScrollView,
   TouchableWithoutFeedback,
   ImageBackground,
   FlatList,
@@ -22,7 +18,6 @@ import ViewShot from 'react-native-view-shot';
 import sc_icon from '../assets/overlayIcons/sc.png';
 import c_icon from '../assets/overlayIcons/c.png';
 import p_icon from '../assets/overlayIcons/p.png';
-import InspectionDataScreen from './InspectionDataScreen';
 
 var RNFS = require('react-native-fs');
 
@@ -35,8 +30,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
   let newDate = currentDate.toLocaleDateString('en-US'); // "en-US" gives date in US Format - mm/dd/yy
   const viewShotRef = useRef(null);
   const [imageSet, setImageSet] = useState([]);
-  const [pickupOrders, setPickupOrders] = useState([]);
-  const [overlay, setOverlay] = useState([]);
   const [selectedIcon, setSelectedIcon] = useState('sc');
   const [currentIndex, setCurrentIndex] = useState('');
   const [readyForShot, setReadyForShot] = useState(0);
@@ -130,6 +123,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
     navigation.navigate('InspectionData', {
       imageSet: imageSet,
       is_edit_mode: route.params.is_edit_mode ? true : false,
+      mode: route.params.mode,
       existed_order: foundOrder && foundOrder,
       order_id: route.params.order_id,
       odometer: route.params.existed_order_data
@@ -275,190 +269,11 @@ export default function DamagesInspectionScreen({route, navigation}) {
       </View>
     </View>
 
-    // <View style={styles.screen}>
-    //   <View style={styles.lowerPanel}>
-    //     <View
-    //       style={{
-    //         flex: 1,
-    //         justifyContent: 'space-around',
-    //         alignItems: 'center',
-    //         flexDirection: 'column',
-    //       }}>
-    //       <TouchableWithoutFeedback
-    //         onPress={() => {
-    //           selectedIconHandler('sc');
-    //         }}>
-    //         <Image
-    //           style={{
-    //             width: 70,
-    //             height: 70,
-    //           }}
-    //           resizeMode="contain"
-    //           source={
-    //             selectedIcon === 'sc'
-    //               ? require('../assets/overlayIcons/sc_green.png')
-    //               : require('../assets/overlayIcons/sc.png')
-    //           }
-    //         />
-    //       </TouchableWithoutFeedback>
-    //       <TouchableWithoutFeedback
-    //         onPress={() => {
-    //           selectedIconHandler('c');
-    //         }}>
-    //         <Image
-    //           style={{
-    //             width: 70,
-    //             height: 70,
-    //           }}
-    //          resizeMode="contain"
-    //           source={
-    //             selectedIcon === 'c'
-    //               ? require('../assets/overlayIcons/c_green.png')
-    //               : require('../assets/overlayIcons/c.png')
-    //           }
-    //         />
-    //       </TouchableWithoutFeedback>
-    //       <TouchableWithoutFeedback
-    //         onPress={() => {
-    //           selectedIconHandler('p');
-    //         }}>
-    //         <Image
-    //           style={{
-    //             width: 70,
-    //             height: 70,
-    //           }}
-    //           resizeMode="contain"
-    //           source={
-    //             selectedIcon === 'p'
-    //               ? require('../assets/overlayIcons/p_green.png')
-    //               : require('../assets/overlayIcons/p.png')
-    //           }
-    //         />
-    //       </TouchableWithoutFeedback>
-    //     </View>
-    //   </View>
-    // <ViewShot ref={viewShotRef} options={{format: 'jpg', quality: 0.9}}>
-    //   <ScrollView horizontal pagingEnabled>
-    //     {imageSet.map((back, indexBackImage) => (
-    //       <View style={styles.middlePanel} key={indexBackImage}>
-    //         <View
-    //             style={styles.imagePreview}>
-    //           <TouchableWithoutFeedback
-    //             style={{
-    //               flex: 1,
-    //               // flexDirection: 'row',
-    //               // justifyContent: 'center',
-    //               // width: '100%',
-    //               // height: '100%',
-    //             }}
-    //             onPress={(ev) => {
-    //               setCoordinates(ev, indexBackImage);
-    //             }}>
-    //             <ImageBackground
-    //               source={{uri: back.backGroundImageUri}}
 
-    //               style={{width: '100%', height: '100%'}}>
-    //               {back.overlay.map((image, index) => (
-    //                 <TouchableWithoutFeedback
-    //                   key={index}
-    //                   onPress={() => {
-    //                     deleteMarkHandler(index, indexBackImage);
-    //                   }}>
-    //                   <Image
-    //                     style={{
-    //                       width: 70,
-    //                       height: 70,
-    //                       margin: 2,
-    //                       position: 'absolute',
-    //                       top: image.x,
-    //                       left: image.y,
-    //                     }}
-    //                     resizeMode="contain"
-    //                     source={{uri: image.uri}}
-    //                   />
-    //                 </TouchableWithoutFeedback>
-    //               ))}
-
-    //               <View
-    //                 style={styles.transparentBox}>
-    //                 <Text style={styles.transparentText}>
-    //                   Pickup conditions {newDate} on @ Pinellas Park, FL 33781
-    //                 </Text>
-    //               </View>
-    //             </ImageBackground>
-    //           </TouchableWithoutFeedback>
-    //         </View>
-    //       </View>
-    //     ))}
-    //   </ScrollView>
-    // </ViewShot>
-    //   <View style={styles.upperPanel}>
-    //     <View
-    //       style={{
-    //         justifyContent: 'space-around',
-    //         alignItems: 'stretch',
-    //         flexDirection: 'column',
-    //         height:"100%"
-    //       }}>
-    //       <View
-    //         style={styles.button}>
-    //         <Button title="Photo" onPress={() => navigation.goBack()} />
-    //       </View>
-
-    //       <View
-    //         style={styles.button}>
-    //         <Button title="Done" onPress={InspectionDataScreenHandler} />
-    //       </View>
-    //     </View>
-    //   </View>
-    // </View>
   );
 }
 
-// const styles = StyleSheet.create({
-//   upperPanel: {
-//     flex: 1,
-//     // width: '100%',
-//     backgroundColor: 'red',
-//     justifyContent: 'center',
-//   },
-//   middlePanel: {
-//     flex: 7,
-//     // width: '100%',
-//     backgroundColor: 'black',
-//     justifyContent: 'center',
-//     flexDirection: 'row',
-//   },
-//   lowerPanel: {
-//     flex: 1,
 
-//     // width: '100%',
-//     backgroundColor: 'red',
-//     justifyContent: 'center',
-//   },
-
-//   screen: {
-//     flexDirection: 'row',
-//     height: '100%',
-//     width: '100%',
-//   },
-//   transparentBox: {
-//     left: -0,
-//     top: 360,
-//     width: '100%',
-//     backgroundColor: 'rgba(0, 0, 0, 0.3)',
-//   },
-//   transparentText: {
-//     fontSize: 15,
-//     color: 'white',
-//   },
-// imagePreview: {
-//   flex: 1,
-//   // height: "80%"
-//   width: Dimensions.get('window').width,
-//   height: Dimensions.get('window').height * 0.8,
-// }
-// });
 
 const styles = StyleSheet.create({
   screen: {
@@ -484,13 +299,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: 'black',
   },
-  // middlePanel: {
-  //   flex: 1,
-  //   width: '100%',
-  //   backgroundColor: 'black',
-  //   justifyContent: 'center',
-  //   flexDirection: 'row',
-  // },
   imagePreview: {
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height * 0.8,

@@ -160,6 +160,7 @@ export default function OrderDetailsScreen({route, navigation}) {
             screen: 'InspectionSignature',
             params: {
               order_id: route.params.order_id,
+              mode: route.params.mode
             },
           });
         }}
@@ -178,6 +179,7 @@ export default function OrderDetailsScreen({route, navigation}) {
             screen: 'InspectionSignature',
             params: {
               order_id: route.params.order_id,
+              mode: route.params.mode
             },
           });
         }}
@@ -244,6 +246,7 @@ export default function OrderDetailsScreen({route, navigation}) {
                   screen: 'PhotoInspection',
                   params: {
                     order_id: route.params.order_id,
+                    mode: route.params.mode
                   },
                 });
               }}
