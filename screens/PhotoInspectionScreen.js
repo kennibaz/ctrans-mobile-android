@@ -12,7 +12,10 @@ import {
 import {RNCamera} from 'react-native-camera';
 import Orientation from 'react-native-orientation-locker';
 import uuid from 'react-uuid';
+import image_diagram from '../assets/insp_diagram.png';
+
 let RNFS = require('react-native-fs');
+const image_diagram_uri = Image.resolveAssetSource(image_diagram).uri;
 
 export default function PhotoInspectionScreen({route, navigation}) {
   const [pickedImageUri, setPickedImageUri] = useState([]);
@@ -24,6 +27,16 @@ export default function PhotoInspectionScreen({route, navigation}) {
     StatusBar.setHidden(true);
     Orientation.lockToPortrait();
   });
+
+  useEffect(()=>{
+    let photo_uri = {
+      image_uri: image_diagram_uri,
+      image_type: "diagram"
+    }
+    setPickedImageUri((previousImages) => [...previousImages, photo_uri])
+  },[])
+
+
 
   const takePicture = async () => {
     if (this.camera) {
@@ -37,7 +50,11 @@ export default function PhotoInspectionScreen({route, navigation}) {
       const data = await this.camera.takePictureAsync(options);
       await RNFS.writeFile(path, data.base64, 'base64');
       const correctedPath = 'file://' + path;
-      setPickedImageUri((previousImages) => [...previousImages, correctedPath]);
+      let photo_uri = {
+        image_uri: correctedPath,
+        image_type: "photo"
+      }
+      setPickedImageUri((previousImages) => [...previousImages, photo_uri]);
       setDamagesScreenButtonEnabled(true);
     }
   };
@@ -127,7 +144,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
           }}>
           {pickedImageUri.map((image, index) => (
             <TouchableOpacity
-              key={image}
+              key={image.image_uri}
               onPress={() => {
                 navigation.navigate('DamageInspection', {
                   uri: image,
@@ -137,7 +154,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
                   index: index
                 });
               }}>
-              <Image style={styles.image} source={{uri: image}} />
+              <Image style={styles.image} source={{uri: image.image_uri}} />
             </TouchableOpacity>
           ))}
         </View>

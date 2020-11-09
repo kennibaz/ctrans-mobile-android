@@ -52,7 +52,8 @@ export default function DamagesInspectionScreen({route, navigation}) {
       imageRawArray.forEach((image) => {
         let key = uuid();
         const imageSet = {
-          backGroundImageUri: image,
+          backGroundImageUri: image.image_uri,
+          image_type: image.image_type,
           overlay: [],
           key: key,
         };
@@ -205,14 +206,17 @@ export default function DamagesInspectionScreen({route, navigation}) {
       </View>
       <ViewShot
         style={styles.mainWindow}
+        ref={viewShotRef}
         options={{format: 'jpg', quality: 0.9}}>
         <View style={styles.mainWindow}>
           <FlatList
             horizontal
             pagingEnabled
-            getItemLayout={(data, index) => (
-              {length: Dimensions.get('window').height * 0.8, offset: Dimensions.get('window').width*index, index}
-            )}
+            getItemLayout={(data, index) => ({
+              length: Dimensions.get('window').height * 0.8,
+              offset: Dimensions.get('window').width * index,
+              index,
+            })}
             initialScrollIndex={route.params.index}
             // onScrollBeginDrag={()=>{setReadyForShot(!readyForShot)}}
             data={imageSet}
@@ -245,6 +249,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
                       />
                     </TouchableWithoutFeedback>
                   ))}
+               
                 </ImageBackground>
               </TouchableWithoutFeedback>
             )}
