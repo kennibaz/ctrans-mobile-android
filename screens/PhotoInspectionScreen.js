@@ -7,7 +7,7 @@ import {
   Dimensions,
   StatusBar,
   Image,
-  Text
+  Text,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 import Orientation from 'react-native-orientation-locker';
@@ -28,15 +28,21 @@ export default function PhotoInspectionScreen({route, navigation}) {
     Orientation.lockToPortrait();
   });
 
-  useEffect(()=>{
-    let photo_uri = {
-      image_uri: image_diagram_uri,
-      image_type: "diagram"
+  useEffect(() => {
+    if (route.params.pickup_diagram) {
+      let photo_uri = {
+        image_uri: route.params.pickup_diagram,
+        image_type: 'diagram',
+      };
+      setPickedImageUri((previousImages) => [...previousImages, photo_uri]);
+    } else {
+      let photo_uri = {
+        image_uri: image_diagram_uri,
+        image_type: 'diagram',
+      };
+      setPickedImageUri((previousImages) => [...previousImages, photo_uri]);
     }
-    setPickedImageUri((previousImages) => [...previousImages, photo_uri])
-  },[])
-
-
+  }, []);
 
   const takePicture = async () => {
     if (this.camera) {
@@ -52,8 +58,8 @@ export default function PhotoInspectionScreen({route, navigation}) {
       const correctedPath = 'file://' + path;
       let photo_uri = {
         image_uri: correctedPath,
-        image_type: "photo"
-      }
+        image_type: 'photo',
+      };
       setPickedImageUri((previousImages) => [...previousImages, photo_uri]);
       setDamagesScreenButtonEnabled(true);
     }
@@ -151,7 +157,7 @@ export default function PhotoInspectionScreen({route, navigation}) {
                   pickedImageUri: pickedImageUri,
                   order_id: route.params.order_id,
                   mode: route.params.mode,
-                  index: index
+                  index: index,
                 });
               }}>
               <Image style={styles.image} source={{uri: image.image_uri}} />

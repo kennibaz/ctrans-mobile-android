@@ -19,11 +19,19 @@ import sc_icon from '../assets/overlayIcons/sc.png';
 import c_icon from '../assets/overlayIcons/c.png';
 import p_icon from '../assets/overlayIcons/p.png';
 
+import sc_icon_rect from '../assets/overlayIcons/sc_rect.png';
+import c_icon_rect from '../assets/overlayIcons/c_rect.png';
+import p_icon_rect from '../assets/overlayIcons/p_rect.png';
+
 var RNFS = require('react-native-fs');
 
 const sc_icon_uri = Image.resolveAssetSource(sc_icon).uri;
 const c_icon_uri = Image.resolveAssetSource(c_icon).uri;
 const p_icon_uri = Image.resolveAssetSource(p_icon).uri;
+
+const sc_icon_rect_uri = Image.resolveAssetSource(sc_icon_rect).uri;
+const c_icon_rect_uri = Image.resolveAssetSource(c_icon_rect).uri;
+const p_icon_rect_uri = Image.resolveAssetSource(p_icon_rect).uri;
 
 export default function DamagesInspectionScreen({route, navigation}) {
   let currentDate = new Date(); //use your date here
@@ -63,29 +71,57 @@ export default function DamagesInspectionScreen({route, navigation}) {
   }, [route.params]);
 
   const setCoordinates = (ev, index) => {
-    let selected_icon = sc_icon_uri;
+    if (route.params.mode === 'pickup') {
+      let selected_icon = sc_icon_uri;
 
-    if (selectedIcon === 'c') {
-      selected_icon = c_icon_uri;
-    } else if (selectedIcon === 'sc') {
-      selected_icon = sc_icon_uri;
-    } else if (selectedIcon === 'p') {
-      selected_icon = p_icon_uri;
+      if (selectedIcon === 'c') {
+        selected_icon = c_icon_uri;
+      } else if (selectedIcon === 'sc') {
+        selected_icon = sc_icon_uri;
+      } else if (selectedIcon === 'p') {
+        selected_icon = p_icon_uri;
+      }
+      let newImageCoordinates = {
+        y: ev.nativeEvent.locationX - 22,
+        x: ev.nativeEvent.locationY - 22,
+        uri: selected_icon,
+      };
+  
+      currentArray = imageSet;
+      currentArray[index].overlay.push(newImageCoordinates);
+  
+      setCurrentIndex(index);
+      setPrepare(!prepare);
+  
+      setImageSet(currentArray);
     }
 
-    let newImageCoordinates = {
-      y: ev.nativeEvent.locationX - 22,
-      x: ev.nativeEvent.locationY - 22,
-      uri: selected_icon,
-    };
+    if (route.params.mode === 'delivery') {
+      let selected_icon = sc_icon_rect_uri;
 
-    currentArray = imageSet;
-    currentArray[index].overlay.push(newImageCoordinates);
+      if (selectedIcon === 'c') {
+        selected_icon = c_icon_rect_uri;
+      } else if (selectedIcon === 'sc') {
+        selected_icon = sc_icon_rect_uri;
+      } else if (selectedIcon === 'p') {
+        selected_icon = p_icon_rect_uri;
+      }
+      let newImageCoordinates = {
+        y: ev.nativeEvent.locationX - 22,
+        x: ev.nativeEvent.locationY - 22,
+        uri: selected_icon,
+      };
+  
+      currentArray = imageSet;
+      currentArray[index].overlay.push(newImageCoordinates);
+  
+      setCurrentIndex(index);
+      setPrepare(!prepare);
+  
+      setImageSet(currentArray);
+    }
 
-    setCurrentIndex(index);
-    setPrepare(!prepare);
-
-    setImageSet(currentArray);
+ 
   };
 
   useEffect(() => {
@@ -249,7 +285,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
                       />
                     </TouchableWithoutFeedback>
                   ))}
-               
                 </ImageBackground>
               </TouchableWithoutFeedback>
             )}

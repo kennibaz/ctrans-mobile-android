@@ -57,7 +57,7 @@ export default function OrderDetailsScreen({route, navigation}) {
       setOrder(foundOrder[0]);
     }
     if (route.params.mode === 'delivery') {
-      // found only selected order from pickup orders
+      // found only selected order from delivery orders
       let foundOrder = deliveryOrders.filter((order) => {
         return order.key === route.params.order_id;
       });
@@ -246,7 +246,8 @@ export default function OrderDetailsScreen({route, navigation}) {
                   screen: 'PhotoInspection',
                   params: {
                     order_id: route.params.order_id,
-                    mode: route.params.mode
+                    mode: route.params.mode,
+                    pickup_diagram: order.pickup.pickup_conditions && order.pickup.pickup_conditions.pickup_inspection_diagram_link
                   },
                 });
               }}

@@ -16,6 +16,8 @@ target 'ver_1' do
 
   pod 'react-native-webview', :path => '../node_modules/react-native-webview'
 
+  pod 'RNImageTools', :path => '../node_modules/react-native-image-tools-wm'
+
   target 'ver_1Tests' do
     inherit! :complete
     # Pods for testing

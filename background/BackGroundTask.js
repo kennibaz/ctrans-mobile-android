@@ -2,6 +2,7 @@ import BackgroundTimer from 'react-native-background-timer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import storage from '@react-native-firebase/storage';
 import uuid from 'react-uuid';
+import axios from 'axios';
 import firestore from '@react-native-firebase/firestore';
 const db = firestore();
 
@@ -22,7 +23,7 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
         };
 
         let uploadedImagesUri = [];
-        let uploadedDiagramUri
+        let uploadedDiagramUri;
 
         const newSignUuid = uuid();
         const reference = storage().ref(
@@ -32,8 +33,8 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
         const imagesArray = data[0].taskBody.imagesArray;
 
         imagesArray.forEach(async (image) => {
-          console.log(image)
-          if (image.image_type === "photo"){
+          console.log(image);
+          if (image.image_type === 'photo') {
             const newId = uuid();
             const reference = storage().ref(
               `/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`,
@@ -51,7 +52,7 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
             imagesArray.shift();
             console.log('done with photo');
           }
-          if (image.image_type === "diagram"){
+          if (image.image_type === 'diagram') {
             const newId = uuid();
             const reference = storage().ref(
               `/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`,
@@ -64,13 +65,12 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
               .ref(`/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`)
               .getDownloadURL();
             // setUploadedImages((currentImages) => [...currentImages, url]);
-            uploadedDiagramUri=url
-            console.log("diagram URI",uploadedDiagramUri )
+            uploadedDiagramUri = url;
+            console.log('diagram URI', uploadedDiagramUri);
             console.log('rest of the array is', imagesArray.length);
             imagesArray.shift();
             console.log('done with diagram');
           }
-         
         });
 
         await reference.putFile(signatureUri);
@@ -100,6 +100,10 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
               order_activity: firestore.FieldValue.arrayUnion(new_activity),
               loadingInProgress: false,
             });
+          await axios.post('https://ctrans.herokuapp.com/api/add-data', {
+            documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${data[0].taskBody.doc_id}`,
+            status: 'picked',
+          });
           uploadDone = true;
         }
 
@@ -122,7 +126,7 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
         };
 
         let uploadedImagesUri = [];
-        let uploadedDiagramUri
+        let uploadedDiagramUri;
 
         const newSignUuid = uuid();
         const reference = storage().ref(
@@ -163,7 +167,7 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
               .ref(`/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`)
               .getDownloadURL();
             // setUploadedImages((currentImages) => [...currentImages, url]);
-            uploadedDiagramUri = url
+            uploadedDiagramUri = url;
             console.log('rest of the array is', imagesArray.length);
             imagesArray.shift();
             console.log('done with diagram');
@@ -198,6 +202,11 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
               order_activity: firestore.FieldValue.arrayUnion(new_activity),
               loadingInProgress: false,
             });
+            await axios.post('https://ctrans.herokuapp.com/api/add-data', {
+              documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${data[0].taskBody.doc_id}`,
+              status: "delivered"
+            });
+            uploadDone = true;
           uploadDone = true;
         }
 
