@@ -4,6 +4,7 @@ import storage from '@react-native-firebase/storage';
 import uuid from 'react-uuid';
 import axios from 'axios';
 import firestore from '@react-native-firebase/firestore';
+var RNFS = require('react-native-fs');
 const db = firestore();
 
 export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
@@ -15,6 +16,8 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
       let data = JSON.parse(value);
       if (data[0].taskBody.mode === 'pickup') {
         const created_at = new Date();
+        let imagesForDeletionArray = []
+        let diagramForDeletion
         const new_activity = {
           activity_date: created_at,
           activity_type: 'Order was picked up',
@@ -46,8 +49,9 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
             const url = await storage()
               .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
               .getDownloadURL();
-            // setUploadedImages((currentImages) => [...currentImages, url]);
+         
             uploadedImagesUri.push(url);
+            imagesForDeletionArray.push(pathToFile)
             console.log('rest of the array is', imagesArray.length);
             imagesArray.shift();
             console.log('done with photo');
@@ -66,6 +70,7 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
               .getDownloadURL();
             // setUploadedImages((currentImages) => [...currentImages, url]);
             uploadedDiagramUri = url;
+            diagramForDeletion = pathToFile
             console.log('diagram URI', uploadedDiagramUri);
             console.log('rest of the array is', imagesArray.length);
             imagesArray.shift();
@@ -104,6 +109,16 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
             documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${data[0].taskBody.doc_id}`,
             status: 'picked',
           });
+          imagesForDeletionArray.forEach((item)=>{
+            return RNFS.unlink(item)
+            .then(() => {
+              console.log('FILE DELETED');
+            })
+            // `unlink` will throw an error, if the item to unlink does not exist
+            .catch((err) => {
+              console.log(err.message);
+            });
+          })
           uploadDone = true;
         }
 

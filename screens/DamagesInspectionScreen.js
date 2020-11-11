@@ -37,7 +37,6 @@ export default function DamagesInspectionScreen({route, navigation}) {
   let currentDate = new Date(); //use your date here
   let newDate = currentDate.toLocaleDateString('en-US'); // "en-US" gives date in US Format - mm/dd/yy
   const viewShotRef = useRef(null);
-  const flatlistRef = useRef();
   const [imageSet, setImageSet] = useState([]);
   const [selectedIcon, setSelectedIcon] = useState('sc');
   const [currentIndex, setCurrentIndex] = useState('');
@@ -134,14 +133,15 @@ export default function DamagesInspectionScreen({route, navigation}) {
         let currentArray = imageSet;
         let index = currentIndex;
         const newId = uuid();
-        let path = RNFS.DocumentDirectoryPath + newId + '.jpg';
-        const options = {quality: 0.5, base64: true};
+        await RNFS.mkdir(`${RNFS.DocumentDirectoryPath}/photo`)
+        let path ='file://'+ RNFS.DocumentDirectoryPath + "/photo/" + newId + '.jpg';
         const dataUri = await viewShotRef.current.capture();
+        console.log(dataUri)
         const dataFile = await RNFS.readFile(dataUri, 'base64');
 
         await RNFS.writeFile(path, dataFile, 'base64');
-        const correctedPath = 'file://' + path;
-        currentArray[index].mergedImage = correctedPath;
+        
+        currentArray[index].mergedImage = path;
       };
       result();
     }
@@ -254,7 +254,7 @@ export default function DamagesInspectionScreen({route, navigation}) {
               index,
             })}
             initialScrollIndex={route.params.index}
-            // onScrollBeginDrag={()=>{setReadyForShot(!readyForShot)}}
+           
             data={imageSet}
             renderItem={({item, index}) => (
               <TouchableWithoutFeedback

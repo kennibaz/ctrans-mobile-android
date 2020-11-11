@@ -47,17 +47,17 @@ export default function PhotoInspectionScreen({route, navigation}) {
   const takePicture = async () => {
     if (this.camera) {
       const newId = uuid();
-      let path = RNFS.DocumentDirectoryPath + newId + '.jpg';
+      let path = "file://"+ RNFS.DocumentDirectoryPath + newId + '.jpg';
       const options = {
-        quality: 0.5,
+        quality: 0.9,
         base64: true,
         orientation: 'portrait',
       };
       const data = await this.camera.takePictureAsync(options);
       await RNFS.writeFile(path, data.base64, 'base64');
-      const correctedPath = 'file://' + path;
+      // const correctedPath = 'file://' + path;
       let photo_uri = {
-        image_uri: correctedPath,
+        image_uri: path,
         image_type: 'photo',
       };
       setPickedImageUri((previousImages) => [...previousImages, photo_uri]);
@@ -177,22 +177,19 @@ const styles = StyleSheet.create({
   },
   upperPanel: {
     flex: 1,
-    // height: '15%',
-    // width: '100%',
+
     backgroundColor: 'black',
     justifyContent: 'center',
   },
   middlePanel: {
     flex: 6,
-    // height: '70%',
-    // width: '100%',
+
     backgroundColor: 'black',
     justifyContent: 'center',
   },
   lowerPanel: {
     flex: 1,
-    // height: '15%',
-    // width: '100%',
+
     backgroundColor: 'black',
     justifyContent: 'center',
   },
