@@ -115,50 +115,50 @@ export default function DamagesInspectionScreen({route, navigation}) {
       currentArray[index].overlay.push(newImageCoordinates);
 
       setCurrentIndex(index);
-      // setPrepare(!prepare);
+      setPrepare(!prepare);
 
       setImageSet(currentArray);
     }
   };
 
-  // useEffect(() => {
-  //   setReadyForShot(readyForShot + 1);
-  // }, [prepare]);
+  useEffect(() => {
+    setReadyForShot(readyForShot + 1);
+  }, [prepare]);
 
-  // useEffect(() => {
-  //   if (readyForShot > 1) {
-  //     const result = async () => {
-  //       let currentArray = imageSet;
-  //       let index = currentIndex;
-  //       const newId = uuid();
-  //       await RNFS.mkdir(`${RNFS.DocumentDirectoryPath}/photo`);
-  //       let path =
-  //         'file://' + RNFS.DocumentDirectoryPath + '/photo/' + newId + '.jpg';
-  //       const dataUri = await viewShotRef.current.capture();
-   
-  //       const dataFile = await RNFS.readFile(dataUri, 'base64');
-
-  //       await RNFS.writeFile(path, dataFile, 'base64');
-
-  //       currentArray[index].mergedImage = path;
-  //     };
-  //     result();
-  //   }
-  // }, [readyForShot]);
-
-  const shotOnDrag = async () => {
-    let currentArray = imageSet;
+  useEffect(() => {
+    if (readyForShot > 1) {
+      const result = async () => {
+        let currentArray = imageSet;
         let index = currentIndex;
         const newId = uuid();
         await RNFS.mkdir(`${RNFS.DocumentDirectoryPath}/photo`);
         let path =
           'file://' + RNFS.DocumentDirectoryPath + '/photo/' + newId + '.jpg';
         const dataUri = await viewShotRef.current.capture();
-        console.log(dataUri);
+   
         const dataFile = await RNFS.readFile(dataUri, 'base64');
+
         await RNFS.writeFile(path, dataFile, 'base64');
+
         currentArray[index].mergedImage = path;
-  };
+      };
+      result();
+    }
+  }, [readyForShot]);
+
+  // const shotOnDrag = async () => {
+  //   let currentArray = imageSet;
+  //       let index = currentIndex;
+  //       const newId = uuid();
+  //       await RNFS.mkdir(`${RNFS.DocumentDirectoryPath}/photo`);
+  //       let path =
+  //         'file://' + RNFS.DocumentDirectoryPath + '/photo/' + newId + '.jpg';
+  //       const dataUri = await viewShotRef.current.capture();
+  //       console.log(dataUri);
+  //       const dataFile = await RNFS.readFile(dataUri, 'base64');
+  //       await RNFS.writeFile(path, dataFile, 'base64');
+  //       currentArray[index].mergedImage = path;
+  // };
 
   const deleteMarkHandler = (index, indexBackImage) => {
     const updatedOverlay = [...imageSet];
@@ -261,9 +261,9 @@ export default function DamagesInspectionScreen({route, navigation}) {
           <FlatList
             horizontal
             pagingEnabled
-            onScrollBeginDrag={shotOnDrag}
+            // onScrollBeginDrag={shotOnDrag}
             getItemLayout={(data, index) => ({
-              length: Dimensions.get('window').height * 0.8,
+              length: Dimensions.get('window').height * 1,
               offset: Dimensions.get('window').width * index,
               index,
             })}
@@ -276,7 +276,9 @@ export default function DamagesInspectionScreen({route, navigation}) {
                 }}>
                 <ImageBackground
                   style={styles.imagePreview}
-                  source={{uri: item.backGroundImageUri}}>
+                  source={{uri: item.backGroundImageUri}}
+                  resizeMode="cover">
+                    
                   {item.overlay.map((image, indexIcon) => (
                     <TouchableWithoutFeedback
                       key={indexIcon}

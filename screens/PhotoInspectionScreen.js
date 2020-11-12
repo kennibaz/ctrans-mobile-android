@@ -73,7 +73,8 @@ export default function PhotoInspectionScreen({route, navigation}) {
             this.camera = ref;
           }}
           style={styles.preview}
-          ratio={'16:9'}
+          ratio={'4:3'}
+          
           type={RNCamera.Constants.Type.back}
           captureAudio={false}
           flashMode={RNCamera.Constants.FlashMode.off}
@@ -215,7 +216,8 @@ const styles = StyleSheet.create({
   preview: {
     flex: 1,
     justifyContent: 'flex-start',
-    alignItems: 'stretch',
+    width: Dimensions.get('window').width
+    // alignItems: 'stretch',
   },
 
   image: {

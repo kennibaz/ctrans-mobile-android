@@ -15,7 +15,6 @@ function OrderTabs() {
       <Tab.Navigator>
         <Tab.Screen name="Pickup" component={PickupOrdersNavigator} />
         <Tab.Screen name="Delivery" component={DeliveryOrdersNavigator} />
-
       </Tab.Navigator>
     );
   }

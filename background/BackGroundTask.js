@@ -12,12 +12,13 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
   let uploadDone = false;
   try {
     const value = await AsyncStorage.getItem('TASKS');
-    if (value !== null) {
+    if (value !== null && value.length>2) {
+      console.log(value.length);
       let data = JSON.parse(value);
       if (data[0].taskBody.mode === 'pickup') {
         const created_at = new Date();
-        let imagesForDeletionArray = []
-        let diagramForDeletion
+        let imagesForDeletionArray = [];
+        let diagramForDeletion;
         const new_activity = {
           activity_date: created_at,
           activity_type: 'Order was picked up',
@@ -49,9 +50,9 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
             const url = await storage()
               .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
               .getDownloadURL();
-         
+
             uploadedImagesUri.push(url);
-            imagesForDeletionArray.push(pathToFile)
+            imagesForDeletionArray.push(pathToFile);
             console.log('rest of the array is', imagesArray.length);
             imagesArray.shift();
             console.log('done with photo');
@@ -70,7 +71,7 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
               .getDownloadURL();
             // setUploadedImages((currentImages) => [...currentImages, url]);
             uploadedDiagramUri = url;
-            diagramForDeletion = pathToFile
+            diagramForDeletion = pathToFile;
             console.log('diagram URI', uploadedDiagramUri);
             console.log('rest of the array is', imagesArray.length);
             imagesArray.shift();
@@ -109,16 +110,18 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
             documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${data[0].taskBody.doc_id}`,
             status: 'picked',
           });
-          imagesForDeletionArray.forEach((item)=>{
-            return RNFS.unlink(item)
-            .then(() => {
-              console.log('FILE DELETED');
-            })
-            // `unlink` will throw an error, if the item to unlink does not exist
-            .catch((err) => {
-              console.log(err.message);
-            });
-          })
+          imagesForDeletionArray.forEach((item) => {
+            return (
+              RNFS.unlink(item)
+                .then(() => {
+                  console.log('FILE DELETED');
+                })
+                // `unlink` will throw an error, if the item to unlink does not exist
+                .catch((err) => {
+                  console.log(err.message);
+                })
+            );
+          });
           uploadDone = true;
         }
 
@@ -217,11 +220,11 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
               order_activity: firestore.FieldValue.arrayUnion(new_activity),
               loadingInProgress: false,
             });
-            await axios.post('https://ctrans.herokuapp.com/api/add-data', {
-              documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${data[0].taskBody.doc_id}`,
-              status: "delivered"
-            });
-            uploadDone = true;
+          await axios.post('https://ctrans.herokuapp.com/api/add-data', {
+            documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${data[0].taskBody.doc_id}`,
+            status: 'delivered',
+          });
+          uploadDone = true;
           uploadDone = true;
         }
 
@@ -234,8 +237,13 @@ export const BGUploadTask = BackgroundTimer.runBackgroundTimer(async () => {
           }
         }
       }
-    } else {
-      console.log('Nothing is scheduled');
+    } else if (value !== null && value.length <= 2) {
+      console.log('Nothing is scheduled, preparind for cleaning');
+      let path = RNFS.DocumentDirectoryPath + '/photo/'
+      RNFS.unlink(path)
+                .then(() => {
+                  console.log('Directory DELETED');
+                }) 
     }
   } catch (e) {
     console.log(e);
