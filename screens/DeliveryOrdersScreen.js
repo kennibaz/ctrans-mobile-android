@@ -26,19 +26,18 @@ export default function DeliveryOrdersScreen(props) {
       .collection('carriers-records')
       .doc('c87U6WtSNRybGF0WrAXb')
       .collection('orders')
+      .where('order_status', '==', 'Picked')
       .onSnapshot((querySnapshot) => {
         const orders = [];
         querySnapshot.forEach((documentSnapshot) => {
           rawData = documentSnapshot.data();
 
-          if (
-            rawData.order_status === 'Picked' 
-          ) {
+         
             orders.push({
               ...rawData,
               key: documentSnapshot.id,
             });
-          }
+          
         });
         const result = async () => {
           try {

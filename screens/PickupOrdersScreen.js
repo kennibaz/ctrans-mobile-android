@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Card} from 'react-native-paper';
+import {Button, Card} from 'react-native-paper';
 import Orientation from 'react-native-orientation-locker';
 import messaging from '@react-native-firebase/messaging';
 const db = firestore();
@@ -18,38 +18,36 @@ export default function PickupOrdersScreen(props) {
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
   const [orders, setOrders] = useState([]); // Initial empty array
   const showToken = async (token) => {
-    console.log(token)
-  }
+    console.log(token);
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     Orientation.lockToPortrait(); //this will lock the view to Landscape
-    messaging().getToken().then(token => {
-      return showToken(token)
-    })
-    return messaging().onTokenRefresh(token => {
-      showToken(token)
-    })
- }, [])
+    messaging()
+      .getToken()
+      .then((token) => {
+        return showToken(token);
+      });
+    return messaging().onTokenRefresh((token) => {
+      showToken(token);
+    });
+  }, []);
 
   useEffect(() => {
     const subscriber = firestore()
       .collection('carriers-records')
       .doc('c87U6WtSNRybGF0WrAXb')
       .collection('orders')
+      .where('order_status', '==', 'Assigned')
       .onSnapshot((querySnapshot) => {
         const orders = [];
         querySnapshot.forEach((documentSnapshot) => {
           rawData = documentSnapshot.data();
 
-          if (
-            rawData.order_status === 'New' ||
-            rawData.order_status === 'Assigned'
-          ) {
-            orders.push({
-              ...rawData,
-              key: documentSnapshot.id,
-            });
-          }
+          orders.push({
+            ...rawData,
+            key: documentSnapshot.id,
+          });
         });
         const result = async () => {
           try {
@@ -58,13 +56,15 @@ export default function PickupOrdersScreen(props) {
             console.log('something went wrong');
           }
           try {
-            let fetchFromAsyncStorage = await AsyncStorage.getItem('pickupOrders');
-            setOrders(JSON.parse(fetchFromAsyncStorage))
+            let fetchFromAsyncStorage = await AsyncStorage.getItem(
+              'pickupOrders',
+            );
+            setOrders(JSON.parse(fetchFromAsyncStorage));
           } catch (e) {
             console.log('something went wrong');
           }
         };
-        result()
+        result();
       });
 
     // Unsubscribe from events when no longer in use
@@ -96,7 +96,7 @@ export default function PickupOrdersScreen(props) {
                     onPress={() => {
                       props.navigation.navigate('OrderDetails', {
                         order_id: item.key,
-                        mode: 'pickup'
+                        mode: 'pickup',
                       });
                     }}>
                     <View>

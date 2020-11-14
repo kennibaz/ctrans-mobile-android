@@ -6,6 +6,7 @@ import storage from '@react-native-firebase/storage';
 import SignatureScreen from 'react-native-signature-canvas';
 import {TextInput} from 'react-native-paper';
 import axios from 'axios';
+import messaging from '@react-native-firebase/messaging';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 var RNFS = require('react-native-fs');
@@ -63,7 +64,7 @@ export default function InspectionSignatureScreen({route, navigation}) {
         });
 
       setUploadDone(true);
-      
+
       const foundOrder = localPickupOrders.filter((order) => {
         return order.key === route.params.order_id;
       });
@@ -71,8 +72,11 @@ export default function InspectionSignatureScreen({route, navigation}) {
         return order.key === route.params.order_id;
       });
       const imagesArray = foundOrder[0].imageSet;
+      const imagesArrayCopy = [...imagesArray];
 
       const created_at = new Date();
+      let images_to_upload = [];
+      let inspection_diagram_uri;
 
       const new_activity = {
         activity_date: created_at,
@@ -81,108 +85,58 @@ export default function InspectionSignatureScreen({route, navigation}) {
         activity_log: `Order was picked up at ${created_at}`,
       };
 
-      let uploadedImagesUri = [];
-      let uploadedDiagramUri;
-
-      const newSignUuid = uuid();
-      const reference = storage().ref(
-        `/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`,
-      );
-      // const signatureUri = signatureUri;
-      const imagesArrayCopy = [...imagesArray];
-
-      imagesArrayCopy.forEach(async (image) => {
-        console.log(image);
+      imagesArrayCopy.forEach((image) => {
         if (image.image_type === 'photo') {
-          const newId = uuid();
-          const reference = storage().ref(
-            `/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`,
-          );
           const pathToFile = image.mergedImage
             ? image.mergedImage
             : image.backGroundImageUri;
-          console.log('path', pathToFile);
-          await reference.putFile(pathToFile);
-          const url = await storage()
-            .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
-            .getDownloadURL();
-
-          uploadedImagesUri.push(url);
-          console.log('rest of the array is', imagesArrayCopy.length);
-          imagesArrayCopy.shift();
-          console.log('done with photo');
+          images_to_upload.push(pathToFile);
         }
         if (image.image_type === 'diagram') {
-          const newId = uuid();
-          const reference = storage().ref(
-            `/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`,
-          );
           const pathToFile = image.mergedImage
             ? image.mergedImage
             : image.backGroundImageUri;
-          await reference.putFile(pathToFile);
-          const url = await storage()
-            .ref(`/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`)
-            .getDownloadURL();
-          // setUploadedImages((currentImages) => [...currentImages, url]);
-          uploadedDiagramUri = url;
-
-          console.log('rest of the array is', imagesArrayCopy.length);
-          imagesArrayCopy.shift();
-          console.log('done with diagram');
+          inspection_diagram_uri = pathToFile;
         }
       });
 
-      console.log('before signature');
-
-      await reference.putFile(signatureUri);
-      console.log('after signature');
-      const signatureResultUri = await storage()
-        .ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`)
-        .getDownloadURL();
-
-      console.log('done with signature');
-
-      if (imagesArrayCopy.length === 0) {
-        db.collection('carriers-records')
-          .doc('c87U6WtSNRybGF0WrAXb')
-          .collection('orders')
-          .doc(route.params.order_id)
-          .update({
-            'pickup.pickup_conditions.name_on_pickup_signature': name,
-            'pickup.pickup_conditions.email_on_pickup_signature': email,
-            'pickup.pickup_conditions.odometer': foundOrder[0].odometer,
-            'pickup.pickup_conditions.driver_pickup_notes':
-              foundOrder[0].driver_pickup_notes,
-            'pickup.pickup_conditions.pickup_inspection_images_links': uploadedImagesUri,
-            'pickup.pickup_conditions.pickup_inspection_diagram_link': uploadedDiagramUri,
-            'pickup.pickup_conditions.signature_image_link': signatureResultUri,
-            order_activity: firestore.FieldValue.arrayUnion(new_activity),
-          });
-        const httpReq = await axios.post(
-          'https://ctrans.herokuapp.com/api/add-data',
-          {
-            documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${route.params.order_id}`,
-            status: 'picked',
-          },
-        );
-        console.log(httpReq);
-        db.collection('carriers-records')
+      db.collection('carriers-records')
         .doc('c87U6WtSNRybGF0WrAXb')
         .collection('orders')
         .doc(route.params.order_id)
-        .update({order_status: 'Picked', loadingInProgress: false,})
-        localPickupOrders.splice(foundOrderIndex, 1);
-        try {
-          await AsyncStorage.setItem(
-            'pickupOrdersLocalStorage',
-            JSON.stringify(localPickupOrders),
-          );
-        } catch (e) {
-          console.log('something went wrong');
-        }
+        .update({
+          'pickup.pickup_conditions.name_on_pickup_signature': name,
+          'pickup.pickup_conditions.email_on_pickup_signature': email,
+          'pickup.pickup_conditions.odometer': foundOrder[0].odometer,
+          'pickup.pickup_conditions.driver_pickup_notes':
+            foundOrder[0].driver_pickup_notes,
+          'pickup.pickup_conditions.upload.number_of_images_to_upload':
+            images_to_upload.length,
+            'pickup.pickup_conditions.upload.number_of_uploaded_images':0,
+          'pickup.pickup_conditions.upload.images_to_upload': images_to_upload,
+          'pickup.pickup_conditions.upload.signature_file': signatureUri,
+          'pickup.pickup_conditions.upload.inspection_diagram': inspection_diagram_uri,
+          order_activity: firestore.FieldValue.arrayUnion(new_activity),
+          order_status: 'Picked',
+          loadingInProgress: false,
+          readyToUploadPickupImages: false,
+          readyToUploadPickupSignature: true,
+          readyToUploadPickupInspectionDiagram: false
+
+        })
+     
+
+      localPickupOrders.splice(foundOrderIndex, 1);
+      try {
+        await AsyncStorage.setItem(
+          'pickupOrdersLocalStorage',
+          JSON.stringify(localPickupOrders),
+        );
+      } catch (e) {
+        console.log('something went wrong');
       }
     }
+
     if (route.params.mode === 'delivery') {
       db.collection('carriers-records')
         .doc('c87U6WtSNRybGF0WrAXb')
@@ -193,6 +147,7 @@ export default function InspectionSignatureScreen({route, navigation}) {
         });
 
       setUploadDone(true);
+
       const foundOrder = localDeliveryOrders.filter((order) => {
         return order.key === route.params.order_id;
       });
@@ -200,8 +155,11 @@ export default function InspectionSignatureScreen({route, navigation}) {
         return order.key === route.params.order_id;
       });
       const imagesArray = foundOrder[0].imageSet;
+      const imagesArrayCopy = [...imagesArray];
 
       const created_at = new Date();
+      let images_to_upload = [];
+      let inspection_diagram_uri;
 
       const new_activity = {
         activity_date: created_at,
@@ -210,105 +168,316 @@ export default function InspectionSignatureScreen({route, navigation}) {
         activity_log: `Order was delivered at ${created_at}`,
       };
 
-      let uploadedImagesUri = [];
-      let uploadedDiagramUri;
-
-      const newSignUuid = uuid();
-      const reference = storage().ref(
-        `/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`,
-      );
-      // const signatureUri = signatureUri;
-      const imagesArrayCopy = [...imagesArray];
-
-      imagesArrayCopy.forEach(async (image) => {
-        console.log(image);
+      imagesArrayCopy.forEach((image) => {
         if (image.image_type === 'photo') {
-          const newId = uuid();
-          const reference = storage().ref(
-            `/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`,
-          );
           const pathToFile = image.mergedImage
             ? image.mergedImage
             : image.backGroundImageUri;
-          console.log('path', pathToFile);
-          await reference.putFile(pathToFile);
-          const url = await storage()
-            .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
-            .getDownloadURL();
-
-          uploadedImagesUri.push(url);
-          console.log('rest of the array is', imagesArrayCopy.length);
-          imagesArrayCopy.shift();
-          console.log('done with photo');
+          images_to_upload.push(pathToFile);
         }
         if (image.image_type === 'diagram') {
-          const newId = uuid();
-          const reference = storage().ref(
-            `/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`,
-          );
           const pathToFile = image.mergedImage
             ? image.mergedImage
             : image.backGroundImageUri;
-          await reference.putFile(pathToFile);
-          const url = await storage()
-            .ref(`/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`)
-            .getDownloadURL();
-          uploadedDiagramUri = url;
-
-          console.log('rest of the array is', imagesArrayCopy.length);
-          imagesArrayCopy.shift();
-          console.log('done with diagram');
+          inspection_diagram_uri = pathToFile;
         }
       });
 
-      await reference.putFile(signatureUri);
-      const signatureResultUri = await storage()
-        .ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`)
-        .getDownloadURL();
+      db.collection('carriers-records')
+        .doc('c87U6WtSNRybGF0WrAXb')
+        .collection('orders')
+        .doc(route.params.order_id)
+        .update({
+          'delivery.delivery_conditions.name_on_delivery_signature': name,
+          'delivery.delivery_conditions.email_on_delivery_signature': email,
+          'delivery.delivery_conditions.odometer': foundOrder[0].odometer,
+          'delivery.delivery_conditions.driver_delivery_notes':
+            foundOrder[0].driver_pickup_notes,
+          'delivery.delivery_conditions.upload.number_of_images_to_upload':
+            images_to_upload.length,
+            'delivery.delivery_conditions.upload.number_of_uploaded_images':0,
+          'delivery.delivery_conditions.upload.images_to_upload': images_to_upload,
+          'delivery.delivery_conditions.upload.signature_file': signatureUri,
+          'delivery.delivery_conditions.upload.inspection_diagram': inspection_diagram_uri,
+          order_activity: firestore.FieldValue.arrayUnion(new_activity),
+          order_status: 'Delivered',
+          loadingInProgress: false,
+          readyToUploadDeliveryImages: false,
+          readyToUploadDeliverySignature: true,
+          readyToUploadDeliveryInspectionDiagram: false
 
-      console.log('done with signature');
+        })
+     
 
-      if (imagesArrayCopy.length === 0) {
-        db.collection('carriers-records')
-          .doc('c87U6WtSNRybGF0WrAXb')
-          .collection('orders')
-          .doc(route.params.order_id)
-          .update({
-            'delivery.delivery_conditions.name_on_delivery_signature': name,
-            'delivery.delivery_conditions.email_on_delivery_signature': email,
-            'delivery.delivery_conditions.odometer': foundOrder[0].odometer,
-            'delivery.delivery_conditions.driver_delivery_notes':
-              foundOrder[0].driver_pickup_notes,
-            'delivery.delivery_conditions.delivery_inspection_images_links': uploadedImagesUri,
-            'delivery.delivery_conditions.delivery_inspection_diagram_link': uploadedDiagramUri,
-            'delivery.delivery_conditions.signature_image_link': signatureResultUri,
-            order_activity: firestore.FieldValue.arrayUnion(new_activity)
-          });
-        const httpReq = await axios.post(
-          'https://ctrans.herokuapp.com/api/add-data',
-          {
-            documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${route.params.order_id}`,
-            status: 'delivered',
-          },
+      localDeliveryOrders.splice(foundOrderIndex, 1);
+      try {
+        await AsyncStorage.setItem(
+          'deliveryOrdersLocalStorage',
+          JSON.stringify(localDeliveryOrders),
         );
-        console.log(httpReq);
-        db.collection('carriers-records')
-          .doc('c87U6WtSNRybGF0WrAXb')
-          .collection('orders')
-          .doc(route.params.order_id)
-          .update({order_status: 'Delivered', loadingInProgress: false,})
-        localDeliveryOrders.splice(foundOrderIndex, 1);
-        try {
-          await AsyncStorage.setItem(
-            'deliveryOrdersLocalStorage',
-            JSON.stringify(localDeliveryOrders),
-          );
-        } catch (e) {
-          console.log('something went wrong');
-        }
+      } catch (e) {
+        console.log('something went wrong');
       }
     }
   };
+
+  // const onPickupHandler = async () => {
+  //   if (route.params.mode === 'pickup') {
+  //     db.collection('carriers-records')
+  //       .doc('c87U6WtSNRybGF0WrAXb')
+  //       .collection('orders')
+  //       .doc(route.params.order_id)
+  //       .update({
+  //         loadingInProgress: true,
+  //       });
+
+  //     setUploadDone(true);
+
+  //     const foundOrder = localPickupOrders.filter((order) => {
+  //       return order.key === route.params.order_id;
+  //     });
+  //     const foundOrderIndex = localPickupOrders.findIndex((order) => {
+  //       return order.key === route.params.order_id;
+  //     });
+  //     const imagesArray = foundOrder[0].imageSet;
+
+  //     const created_at = new Date();
+
+  //     const new_activity = {
+  //       activity_date: created_at,
+  //       activity_type: 'Order was picked up',
+  //       activity_user: 'driver',
+  //       activity_log: `Order was picked up at ${created_at}`,
+  //     };
+
+  //     let uploadedImagesUri = [];
+  //     let uploadedDiagramUri;
+
+  //     const newSignUuid = uuid();
+  //     const reference = storage().ref(
+  //       `/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`,
+  //     );
+  //     // const signatureUri = signatureUri;
+  //     const imagesArrayCopy = [...imagesArray];
+
+  //     imagesArrayCopy.forEach(async (image) => {
+  //       console.log(image);
+  //       if (image.image_type === 'photo') {
+  //         const newId = uuid();
+  //         const reference = storage().ref(
+  //           `/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`,
+  //         );
+  //         const pathToFile = image.mergedImage
+  //           ? image.mergedImage
+  //           : image.backGroundImageUri;
+  //         console.log('path', pathToFile);
+  //         await reference.putFile(pathToFile);
+  //         const url = await storage()
+  //           .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
+  //           .getDownloadURL();
+
+  //         uploadedImagesUri.push(url);
+  //         console.log('rest of the array is', imagesArrayCopy.length);
+  //         imagesArrayCopy.shift();
+  //         console.log('done with photo');
+  //       }
+  //       if (image.image_type === 'diagram') {
+  //         const newId = uuid();
+  //         const reference = storage().ref(
+  //           `/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`,
+  //         );
+  //         const pathToFile = image.mergedImage
+  //           ? image.mergedImage
+  //           : image.backGroundImageUri;
+  //         await reference.putFile(pathToFile);
+  //         const url = await storage()
+  //           .ref(`/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`)
+  //           .getDownloadURL();
+  //         // setUploadedImages((currentImages) => [...currentImages, url]);
+  //         uploadedDiagramUri = url;
+
+  //         console.log('rest of the array is', imagesArrayCopy.length);
+  //         imagesArrayCopy.shift();
+  //         console.log('done with diagram');
+  //       }
+  //     });
+
+  //     console.log('before signature');
+
+  //     await reference.putFile(signatureUri);
+  //     console.log('after signature');
+  //     const signatureResultUri = await storage()
+  //       .ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`)
+  //       .getDownloadURL();
+
+  //     console.log('done with signature');
+
+  //     if (imagesArrayCopy.length === 0) {
+  //       db.collection('carriers-records')
+  //         .doc('c87U6WtSNRybGF0WrAXb')
+  //         .collection('orders')
+  //         .doc(route.params.order_id)
+  //         .update({
+  //           'pickup.pickup_conditions.name_on_pickup_signature': name,
+  //           'pickup.pickup_conditions.email_on_pickup_signature': email,
+  //           'pickup.pickup_conditions.odometer': foundOrder[0].odometer,
+  //           'pickup.pickup_conditions.driver_pickup_notes':
+  //             foundOrder[0].driver_pickup_notes,
+  //           'pickup.pickup_conditions.pickup_inspection_images_links': uploadedImagesUri,
+  //           'pickup.pickup_conditions.pickup_inspection_diagram_link': uploadedDiagramUri,
+  //           'pickup.pickup_conditions.signature_image_link': signatureResultUri,
+  //           order_activity: firestore.FieldValue.arrayUnion(new_activity),
+  //         });
+  //       const httpReq = await axios.post(
+  //         'https://ctrans.herokuapp.com/api/add-data',
+  //         {
+  //           documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${route.params.order_id}`,
+  //           status: 'picked',
+  //         },
+  //       );
+  //       console.log(httpReq);
+  //       db.collection('carriers-records')
+  //         .doc('c87U6WtSNRybGF0WrAXb')
+  //         .collection('orders')
+  //         .doc(route.params.order_id)
+  //         .update({order_status: 'Picked', loadingInProgress: false});
+  //       localPickupOrders.splice(foundOrderIndex, 1);
+  //       try {
+  //         await AsyncStorage.setItem(
+  //           'pickupOrdersLocalStorage',
+  //           JSON.stringify(localPickupOrders),
+  //         );
+  //       } catch (e) {
+  //         console.log('something went wrong');
+  //       }
+  //     }
+  //   }
+  //   if (route.params.mode === 'delivery') {
+  //     db.collection('carriers-records')
+  //       .doc('c87U6WtSNRybGF0WrAXb')
+  //       .collection('orders')
+  //       .doc(route.params.order_id)
+  //       .update({
+  //         loadingInProgress: true,
+  //       });
+
+  //     setUploadDone(true);
+  //     const foundOrder = localDeliveryOrders.filter((order) => {
+  //       return order.key === route.params.order_id;
+  //     });
+  //     const foundOrderIndex = localDeliveryOrders.findIndex((order) => {
+  //       return order.key === route.params.order_id;
+  //     });
+  //     const imagesArray = foundOrder[0].imageSet;
+
+  //     const created_at = new Date();
+
+  //     const new_activity = {
+  //       activity_date: created_at,
+  //       activity_type: 'Order was delivered',
+  //       activity_user: 'driver',
+  //       activity_log: `Order was delivered at ${created_at}`,
+  //     };
+
+  //     let uploadedImagesUri = [];
+  //     let uploadedDiagramUri;
+
+  //     const newSignUuid = uuid();
+  //     const reference = storage().ref(
+  //       `/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`,
+  //     );
+  //     // const signatureUri = signatureUri;
+  //     const imagesArrayCopy = [...imagesArray];
+
+  //     imagesArrayCopy.forEach(async (image) => {
+  //       console.log(image);
+  //       if (image.image_type === 'photo') {
+  //         const newId = uuid();
+  //         const reference = storage().ref(
+  //           `/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`,
+  //         );
+  //         const pathToFile = image.mergedImage
+  //           ? image.mergedImage
+  //           : image.backGroundImageUri;
+  //         console.log('path', pathToFile);
+  //         await reference.putFile(pathToFile);
+  //         const url = await storage()
+  //           .ref(`/c87U6WtSNRybGF0WrAXb/inspection-photo-${newId}.jpg`)
+  //           .getDownloadURL();
+
+  //         uploadedImagesUri.push(url);
+  //         console.log('rest of the array is', imagesArrayCopy.length);
+  //         imagesArrayCopy.shift();
+  //         console.log('done with photo');
+  //       }
+  //       if (image.image_type === 'diagram') {
+  //         const newId = uuid();
+  //         const reference = storage().ref(
+  //           `/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`,
+  //         );
+  //         const pathToFile = image.mergedImage
+  //           ? image.mergedImage
+  //           : image.backGroundImageUri;
+  //         await reference.putFile(pathToFile);
+  //         const url = await storage()
+  //           .ref(`/c87U6WtSNRybGF0WrAXb/inspection-diagram-${newId}.jpg`)
+  //           .getDownloadURL();
+  //         uploadedDiagramUri = url;
+
+  //         console.log('rest of the array is', imagesArrayCopy.length);
+  //         imagesArrayCopy.shift();
+  //         console.log('done with diagram');
+  //       }
+  //     });
+
+  //     await reference.putFile(signatureUri);
+  //     const signatureResultUri = await storage()
+  //       .ref(`/c87U6WtSNRybGF0WrAXb/signature-${newSignUuid}.jpg`)
+  //       .getDownloadURL();
+
+  //     console.log('done with signature');
+
+  //     if (imagesArrayCopy.length === 0) {
+  //       db.collection('carriers-records')
+  //         .doc('c87U6WtSNRybGF0WrAXb')
+  //         .collection('orders')
+  //         .doc(route.params.order_id)
+  //         .update({
+  //           'delivery.delivery_conditions.name_on_delivery_signature': name,
+  //           'delivery.delivery_conditions.email_on_delivery_signature': email,
+  //           'delivery.delivery_conditions.odometer': foundOrder[0].odometer,
+  //           'delivery.delivery_conditions.driver_delivery_notes':
+  //             foundOrder[0].driver_pickup_notes,
+  //           'delivery.delivery_conditions.delivery_inspection_images_links': uploadedImagesUri,
+  //           'delivery.delivery_conditions.delivery_inspection_diagram_link': uploadedDiagramUri,
+  //           'delivery.delivery_conditions.signature_image_link': signatureResultUri,
+  //           order_activity: firestore.FieldValue.arrayUnion(new_activity),
+  //         });
+  //       const httpReq = await axios.post(
+  //         'https://ctrans.herokuapp.com/api/add-data',
+  //         {
+  //           documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/${route.params.order_id}`,
+  //           status: 'delivered',
+  //         },
+  //       );
+  //       console.log(httpReq);
+  //       db.collection('carriers-records')
+  //         .doc('c87U6WtSNRybGF0WrAXb')
+  //         .collection('orders')
+  //         .doc(route.params.order_id)
+  //         .update({order_status: 'Delivered', loadingInProgress: false});
+  //       localDeliveryOrders.splice(foundOrderIndex, 1);
+  //       try {
+  //         await AsyncStorage.setItem(
+  //           'deliveryOrdersLocalStorage',
+  //           JSON.stringify(localDeliveryOrders),
+  //         );
+  //       } catch (e) {
+  //         console.log('something went wrong');
+  //       }
+  //     }
+  //   }
+  // };
 
   // const onPickupHandler = async () => {
   //   if (route.params.mode === 'pickup') {

@@ -13,6 +13,8 @@ import {RNCamera} from 'react-native-camera';
 import Orientation from 'react-native-orientation-locker';
 import uuid from 'react-uuid';
 import image_diagram from '../assets/insp_diagram.png';
+import messaging from '@react-native-firebase/messaging';
+
 
 let RNFS = require('react-native-fs');
 const image_diagram_uri = Image.resolveAssetSource(image_diagram).uri;
@@ -44,10 +46,20 @@ export default function PhotoInspectionScreen({route, navigation}) {
     }
   }, []);
 
+  const testHandler = () => {
+    messaging().sendMessage({
+      data: {
+        type: "Test",
+        documentUri: `carriers-records/c87U6WtSNRybGF0WrAXb/orders/`
+
+      },
+    });
+  }
+
   const takePicture = async () => {
     if (this.camera) {
       const newId = uuid();
-      let path = "file://"+ RNFS.DocumentDirectoryPath + newId + '.jpg';
+      let path = 'file://' + RNFS.DocumentDirectoryPath + newId + '.jpg';
       const options = {
         quality: 0.9,
         base64: true,
@@ -74,7 +86,6 @@ export default function PhotoInspectionScreen({route, navigation}) {
           }}
           style={styles.preview}
           ratio={'4:3'}
-          
           type={RNCamera.Constants.Type.back}
           captureAudio={false}
           flashMode={RNCamera.Constants.FlashMode.off}
@@ -109,7 +120,9 @@ export default function PhotoInspectionScreen({route, navigation}) {
                 transform: [{rotate: '90deg'}],
               },
             ]}>
-            <Button title="Cancel" onPress={() => navigation.goBack()} />
+            {/* <Button title="Cancel" onPress={() => navigation.goBack()} /> */}
+            <Button title="Test" onPress={testHandler} />
+         
           </View>
 
           <View
@@ -216,7 +229,7 @@ const styles = StyleSheet.create({
   preview: {
     flex: 1,
     justifyContent: 'flex-start',
-    width: Dimensions.get('window').width
+    width: Dimensions.get('window').width,
     // alignItems: 'stretch',
   },
 
